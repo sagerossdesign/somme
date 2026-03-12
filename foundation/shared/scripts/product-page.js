@@ -91,6 +91,7 @@ const addCartItem = (config, refs) => {
 
 const applyEntryTransitionState = (page) => {
   if (window.sessionStorage.getItem(PRODUCT_PAGE_TRANSITION_KEY) !== '1') {
+    document.documentElement.classList.remove('is-product-page-transitioning');
     return;
   }
 
@@ -102,6 +103,11 @@ const applyEntryTransitionState = (page) => {
       page.classList.add('is-transition-enter-active');
     });
   });
+
+  window.setTimeout(() => {
+    page.classList.remove('is-transition-enter', 'is-transition-enter-active');
+    document.documentElement.classList.remove('is-product-page-transitioning');
+  }, PRODUCT_PAGE_TRANSITION_MS + 60);
 };
 
 const bindProductPageTransition = (link) => {
