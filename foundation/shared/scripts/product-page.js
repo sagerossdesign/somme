@@ -54,14 +54,37 @@ const setCartState = (state) => {
 const getCartCount = (state = getCartState()) =>
   state.items.reduce((sum, item) => sum + (item.quantity || 0), 0);
 
-const syncCartUi = (cartLink, countNode) => {
-  const count = getCartCount();
+const formatCurrency = (amount, currencyCode) => {
+  if (!amount || !currencyCode) {
+    return null;
+  }
+
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: currencyCode,
+  }).format(Number(amount) / 100);
+};
+
+const getCartSubtotal = (state = getCartState()) =>
+  state.items.reduce((sum, item) => {
+    const amount = Number(item.priceAmount || 0);
+    const quantity = Number(item.quantity || 0);
+    return sum + amount * quantity;
+  }, 0);
+
+const syncCartUi = (cartLink, countNode, shell) => {
+  const state = getCartState();
+  const count = getCartCount(state);
   const hasItems = count > 0;
 
   countNode.textContent = String(count);
   cartLink.classList.toggle('is-visible', hasItems);
   cartLink.setAttribute('aria-hidden', hasItems ? 'false' : 'true');
   cartLink.tabIndex = hasItems ? 0 : -1;
+
+  if (!hasItems) {
+    shell?.classList.remove('is-cart-open');
+  }
 };
 
 const addCartItem = (config, refs) => {
@@ -87,6 +110,86 @@ const addCartItem = (config, refs) => {
   }
 
   setCartState(state);
+};
+
+const updateCartItemQuantity = (variationId, delta) => {
+  const state = getCartState();
+  const item = state.items.find((entry) => entry.variationId === variationId);
+
+  if (!item) {
+    return;
+  }
+
+  item.quantity = Math.max(0, (item.quantity || 0) + delta);
+  state.items = state.items.filter((entry) => entry.quantity > 0);
+  setCartState(state);
+};
+
+const renderCartDrawer = (refs) => {
+  const state = getCartState();
+  const { drawerItems, drawerSubtotalValue, drawerEmpty, shell } = refs;
+  const count = getCartCount(state);
+
+  drawerItems.replaceChildren();
+
+  if (count === 0) {
+    drawerEmpty.hidden = false;
+    drawerSubtotalValue.textContent = '';
+    shell.classList.remove('is-cart-open');
+    return;
+  }
+
+  drawerEmpty.hidden = true;
+
+  state.items.forEach((item) => {
+    const row = document.createElement('article');
+    row.className = 'cart-drawer-item';
+
+    const image = document.createElement('img');
+    image.className = 'cart-drawer-item-image';
+    image.src = item.imageSrc;
+    image.alt = '';
+    image.setAttribute('aria-hidden', 'true');
+
+    const body = document.createElement('div');
+    body.className = 'cart-drawer-item-body';
+
+    const title = document.createElement('p');
+    title.className = 'cart-drawer-item-title';
+    title.textContent = item.name;
+
+    const meta = document.createElement('p');
+    meta.className = 'cart-drawer-item-meta';
+    meta.textContent = item.priceFormatted || formatCurrency(item.priceAmount, item.currencyCode) || '';
+
+    const controls = document.createElement('div');
+    controls.className = 'cart-drawer-item-controls';
+
+    const minus = document.createElement('button');
+    minus.type = 'button';
+    minus.className = 'cart-drawer-quantity-button';
+    minus.textContent = '−';
+    minus.addEventListener('click', () => updateCartItemQuantity(item.variationId, -1));
+
+    const quantity = document.createElement('span');
+    quantity.className = 'cart-drawer-quantity';
+    quantity.textContent = String(item.quantity);
+
+    const plus = document.createElement('button');
+    plus.type = 'button';
+    plus.className = 'cart-drawer-quantity-button';
+    plus.textContent = '+';
+    plus.addEventListener('click', () => updateCartItemQuantity(item.variationId, 1));
+
+    controls.append(minus, quantity, plus);
+    body.append(title, meta, controls);
+    row.append(image, body);
+    drawerItems.append(row);
+  });
+
+  const subtotalCurrency = state.items.find((item) => item.currencyCode)?.currencyCode;
+  drawerSubtotalValue.textContent =
+    formatCurrency(getCartSubtotal(state), subtotalCurrency) || '';
 };
 
 const applyEntryTransitionState = (page) => {
@@ -194,6 +297,9 @@ export const createProductPage = (config) => {
 
   const { product, navigation } = config;
 
+  const shell = document.createElement('div');
+  shell.className = 'product-page-shell';
+
   const page = document.createElement('main');
   page.className = 'product-page';
 
@@ -298,19 +404,92 @@ export const createProductPage = (config) => {
 
   stage.append(prevLink, content, nextLink);
   page.append(header, stage);
+  
+  const drawer = document.createElement('aside');
+  drawer.className = 'cart-drawer';
+  drawer.setAttribute('aria-label', 'cart');
 
-  root.replaceChildren(page);
+  const drawerHeader = document.createElement('div');
+  drawerHeader.className = 'cart-drawer-header';
+
+  const drawerTitle = document.createElement('p');
+  drawerTitle.className = 'cart-drawer-title';
+  drawerTitle.textContent = 'cart';
+
+  const drawerClose = document.createElement('button');
+  drawerClose.type = 'button';
+  drawerClose.className = 'cart-drawer-close';
+  drawerClose.textContent = 'close';
+
+  drawerHeader.append(drawerTitle, drawerClose);
+
+  const drawerBody = document.createElement('div');
+  drawerBody.className = 'cart-drawer-body';
+
+  const drawerEmpty = document.createElement('p');
+  drawerEmpty.className = 'cart-drawer-empty';
+  drawerEmpty.textContent = 'your cart is empty';
+
+  const drawerItems = document.createElement('div');
+  drawerItems.className = 'cart-drawer-items';
+
+  drawerBody.append(drawerEmpty, drawerItems);
+
+  const drawerFooter = document.createElement('div');
+  drawerFooter.className = 'cart-drawer-footer';
+
+  const drawerSubtotalLabel = document.createElement('span');
+  drawerSubtotalLabel.className = 'cart-drawer-subtotal-label';
+  drawerSubtotalLabel.textContent = 'subtotal';
+
+  const drawerSubtotalValue = document.createElement('span');
+  drawerSubtotalValue.className = 'cart-drawer-subtotal-value';
+
+  drawerFooter.append(drawerSubtotalLabel, drawerSubtotalValue);
+  drawer.append(drawerHeader, drawerBody, drawerFooter);
+
+  shell.append(page, drawer);
+  root.replaceChildren(shell);
   applyEntryTransitionState(page);
 
-  const handleCartSync = () => syncCartUi(cartLink, cartCount);
+  const handleCartSync = () => {
+    syncCartUi(cartLink, cartCount, shell);
+    renderCartDrawer({
+      shell,
+      drawerItems,
+      drawerSubtotalValue,
+      drawerEmpty,
+    });
+  };
   window.addEventListener('storage', handleCartSync);
   window.addEventListener('somme:cart-updated', handleCartSync);
+
+  cartLink.addEventListener('click', (event) => {
+    event.preventDefault();
+
+    if (!getCartCount()) {
+      return;
+    }
+
+    shell.classList.toggle('is-cart-open');
+  });
+
+  drawerClose.addEventListener('click', () => {
+    shell.classList.remove('is-cart-open');
+  });
+
+  window.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      shell.classList.remove('is-cart-open');
+    }
+  });
 
   detailLink.addEventListener('click', (event) => {
     event.preventDefault();
     addCartItem(config, {
       detailLink,
     });
+    shell.classList.add('is-cart-open');
   });
 
   handleCartSync();
