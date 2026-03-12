@@ -4,7 +4,7 @@ export const siteConfig = {
     title: 'sōmme | arrive to yourself through the senses',
     description:
       'sōmme is a ritual-centered wellness brand rooted in ritual, simplicity, and embodied presence',
-    favicon: './assets/images/favicon.png',
+    favicon: '/sites/somme/assets/images/favicon.png',
   },
   theme: {
     '--page-pad': 'clamp(1rem, 2.5vw, 2rem)',
@@ -28,7 +28,7 @@ export const siteConfig = {
       navAriaLabel: 'Primary',
       links: [
         { label: 'tea', href: '#tea' },
-        { label: 'about', href: './about.html' },
+        { label: 'about', href: '/about.html' },
       ],
     },
     main: [
@@ -51,9 +51,9 @@ export const siteConfig = {
         cards: [
           {
             botanical: 'rose',
-            imageSrc: './assets/images/rose-abstract.png',
+            imageSrc: '/sites/somme/assets/images/rose-abstract.png',
             imageAlt: 'rose botanical card',
-            href: './products/sensual.html',
+            href: '/products/sensual.html',
             overlay: {
               title: 'sensual',
               lines: [
@@ -64,9 +64,9 @@ export const siteConfig = {
           },
           {
             botanical: 'hibiscus',
-            imageSrc: './assets/images/soverign-abstract.png',
+            imageSrc: '/sites/somme/assets/images/soverign-abstract.png',
             imageAlt: 'hibiscus botanical card',
-            href: './products/sovereign.html',
+            href: '/products/sovereign.html',
             overlay: {
               title: 'sovereign',
               lines: [
@@ -77,9 +77,9 @@ export const siteConfig = {
           },
           {
             botanical: 'damiana',
-            imageSrc: './assets/images/grounded-abstract.png',
+            imageSrc: '/sites/somme/assets/images/grounded-abstract.png',
             imageAlt: 'damiana botanical card',
-            href: './products/steady.html',
+            href: '/products/steady.html',
             overlay: {
               title: 'steady',
               lines: [
@@ -97,10 +97,10 @@ export const siteConfig = {
       note: 'arrive to self through the senses',
       links: [
         { label: 'tea', href: '#tea' },
-        { label: 'about', href: './about.html' },
+        { label: 'about', href: '/about.html' },
         { label: 'top', href: '#top' },
       ],
-      markSrc: './assets/images/favicon.png',
+      markSrc: '/sites/somme/assets/images/favicon.png',
       markAlt: 'sōmme favicon',
     },
   },
