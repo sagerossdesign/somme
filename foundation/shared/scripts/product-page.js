@@ -2,7 +2,7 @@ import { applyTheme, setDocumentMeta } from './utils.js';
 
 const CART_STORAGE_KEY = 'somme-cart';
 const PRODUCT_PAGE_TRANSITION_KEY = 'somme-product-transition';
-const PRODUCT_PAGE_TRANSITION_MS = 420;
+const PRODUCT_PAGE_TRANSITION_MS = 280;
 
 const buildNavLink = ({ href, label, ariaLabel, direction }) => {
   const link = document.createElement('a');
