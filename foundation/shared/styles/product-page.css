@@ -15,11 +15,17 @@ html.is-product-page-transitioning body {
   pointer-events: none;
 }
 
+.product-page-shell {
+  width: 100vw;
+  overflow: hidden;
+}
+
 .product-page {
+  width: 100vw;
   height: 100svh;
   padding: 0 var(--page-pad, clamp(1rem, 2.5vw, 2rem)) 2rem;
   opacity: 1;
-  transition: opacity 280ms ease, transform 520ms ease;
+  transition: opacity 280ms ease, width 520ms ease;
 }
 
 .product-page.is-transition-enter {
@@ -35,7 +41,7 @@ html.is-product-page-transitioning body {
 }
 
 .product-page-shell.is-cart-open .product-page {
-  transform: translateX(calc(-1 * var(--cart-drawer-width)));
+  width: calc(100vw - var(--cart-drawer-width));
 }
 
 .site-header {
@@ -97,6 +103,12 @@ html.is-product-page-transitioning body {
   transition: opacity 320ms ease, transform 320ms ease, visibility 320ms linear;
 }
 
+.site-cart-link:focus,
+.site-cart-link:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
 .site-cart-link.is-visible {
   opacity: 1;
   visibility: visible;
@@ -133,7 +145,7 @@ html.is-product-page-transitioning body {
   display: grid;
   grid-template-rows: auto 1fr auto;
   padding: 1.35rem var(--page-pad, clamp(1rem, 2.5vw, 2rem)) 1.5rem;
-  background: #f6f2ea;
+  background: #fafafa;
   border-left: 1px solid rgba(102, 97, 78, 0.12);
   transform: translateX(100%);
   transition: transform 520ms ease;

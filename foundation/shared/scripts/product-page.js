@@ -489,7 +489,6 @@ export const createProductPage = (config) => {
     addCartItem(config, {
       detailLink,
     });
-    shell.classList.add('is-cart-open');
   });
 
   handleCartSync();
