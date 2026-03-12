@@ -5,6 +5,7 @@ import {
   getCartState,
   getCartSubtotal,
   getCartUiState,
+  refreshMissingCartMetadata,
   setCartState,
   setCartUiState,
   syncCartItemMetadata,
@@ -538,6 +539,7 @@ export const createProductPage = (config) => {
   });
 
   handleCartSync();
+  refreshMissingCartMetadata();
   shell.classList.toggle('is-cart-open', getCartUiState().isOpen && getCartCount() > 0);
   bindProductPageTransition(prevLink);
   bindProductPageTransition(nextLink);

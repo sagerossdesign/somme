@@ -9,6 +9,7 @@ import {
   getCartState,
   getCartSubtotal,
   getCartUiState,
+  refreshMissingCartMetadata,
   setCartState,
   setCartUiState,
 } from './cart-state.js';
@@ -269,6 +270,7 @@ const mountCartShell = (root, header, pageFrame, meta = {}) => {
   window.addEventListener('somme:cart-ui-updated', syncOpenState);
 
   renderCartDrawer();
+  refreshMissingCartMetadata();
   syncOpenState();
 };
 

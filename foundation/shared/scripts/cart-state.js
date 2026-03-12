@@ -108,3 +108,63 @@ export const syncCartItemMetadata = (payload = {}) => {
     setCartState(state);
   }
 };
+
+const catalogRefreshes = new Map();
+
+export const refreshMissingCartMetadata = async () => {
+  const state = getCartState();
+  const staleItems = state.items.filter(
+    (item) => item.slug && (!item.priceAmount || !item.currencyCode || !item.variationId)
+  );
+
+  if (!staleItems.length) {
+    return;
+  }
+
+  const uniqueSlugs = [...new Set(staleItems.map((item) => item.slug))];
+
+  await Promise.all(
+    uniqueSlugs.map(async (slug) => {
+      if (catalogRefreshes.has(slug)) {
+        return catalogRefreshes.get(slug);
+      }
+
+      const refreshPromise = fetch(`/api/catalog/${slug}`, {
+        headers: {
+          accept: 'application/json',
+        },
+      })
+        .then((response) => {
+          if (!response.ok) {
+            return null;
+          }
+
+          return response.json();
+        })
+        .then((payload) => {
+          const product = payload?.product;
+
+          if (!product) {
+            return;
+          }
+
+          syncCartItemMetadata({
+            slug,
+            name: product.itemName,
+            itemId: product.itemId,
+            variationId: product.variationId,
+            locationId: product.locationId,
+            priceAmount: product.priceAmount,
+            currencyCode: product.currencyCode,
+            priceFormatted: product.priceFormatted,
+          });
+        })
+        .finally(() => {
+          catalogRefreshes.delete(slug);
+        });
+
+      catalogRefreshes.set(slug, refreshPromise);
+      return refreshPromise;
+    })
+  );
+};
