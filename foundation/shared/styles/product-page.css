@@ -10,9 +10,27 @@ body {
   overflow: hidden;
 }
 
+html.is-product-page-transitioning body {
+  pointer-events: none;
+}
+
 .product-page {
   height: 100svh;
   padding: 0 var(--page-pad, clamp(1rem, 2.5vw, 2rem)) 2rem;
+  opacity: 1;
+  transition: opacity 420ms ease;
+}
+
+.product-page.is-transition-enter {
+  opacity: 0;
+}
+
+.product-page.is-transition-enter.is-transition-enter-active {
+  opacity: 1;
+}
+
+.product-page.is-transition-exit {
+  opacity: 0;
 }
 
 .site-header {
@@ -116,11 +134,9 @@ body {
   display: grid;
   place-items: center;
   justify-self: center;
-  border: 1px solid rgba(102, 97, 78, 0.1);
-  background: rgba(255, 255, 255, 0.34);
   font-size: 1.5rem;
   line-height: 1;
-  transition: background-color 220ms ease, border-color 220ms ease, transform 220ms ease;
+  transition: opacity 220ms ease, transform 220ms ease;
 }
 
 .product-nav-link:hover,
@@ -135,7 +151,7 @@ body {
 .product-nav-link:hover,
 .product-nav-link:focus-visible {
   transform: translateY(-1px);
-  border-color: rgba(102, 97, 78, 0.22);
+  opacity: 0.72;
 }
 
 .product-stage-content {

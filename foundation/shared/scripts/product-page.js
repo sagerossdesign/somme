@@ -1,6 +1,8 @@
 import { applyTheme, setDocumentMeta } from './utils.js';
 
 const CART_STORAGE_KEY = 'somme-cart';
+const PRODUCT_PAGE_TRANSITION_KEY = 'somme-product-transition';
+const PRODUCT_PAGE_TRANSITION_MS = 420;
 
 const buildNavLink = ({ href, label, ariaLabel, direction }) => {
   const link = document.createElement('a');
@@ -85,6 +87,51 @@ const addCartItem = (config, refs) => {
   }
 
   setCartState(state);
+};
+
+const applyEntryTransitionState = (page) => {
+  if (window.sessionStorage.getItem(PRODUCT_PAGE_TRANSITION_KEY) !== '1') {
+    return;
+  }
+
+  window.sessionStorage.removeItem(PRODUCT_PAGE_TRANSITION_KEY);
+  page.classList.add('is-transition-enter');
+
+  window.requestAnimationFrame(() => {
+    window.requestAnimationFrame(() => {
+      page.classList.add('is-transition-enter-active');
+    });
+  });
+};
+
+const bindProductPageTransition = (link) => {
+  link.addEventListener('click', (event) => {
+    if (
+      event.defaultPrevented ||
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    ) {
+      return;
+    }
+
+    const href = link.getAttribute('href');
+
+    if (!href) {
+      return;
+    }
+
+    event.preventDefault();
+    window.sessionStorage.setItem(PRODUCT_PAGE_TRANSITION_KEY, '1');
+    document.documentElement.classList.add('is-product-page-transitioning');
+    document.querySelector('.product-page')?.classList.add('is-transition-exit');
+
+    window.setTimeout(() => {
+      window.location.href = href;
+    }, PRODUCT_PAGE_TRANSITION_MS);
+  });
 };
 
 const hydrateSquareData = async (config, refs) => {
@@ -247,6 +294,7 @@ export const createProductPage = (config) => {
   page.append(header, stage);
 
   root.replaceChildren(page);
+  applyEntryTransitionState(page);
 
   const handleCartSync = () => syncCartUi(cartLink, cartCount);
   window.addEventListener('storage', handleCartSync);
@@ -260,6 +308,8 @@ export const createProductPage = (config) => {
   });
 
   handleCartSync();
+  bindProductPageTransition(prevLink);
+  bindProductPageTransition(nextLink);
 
   hydrateSquareData(config, {
     detailLink,
