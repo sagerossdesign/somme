@@ -1,6 +1,6 @@
 import { products } from '../../../sites/somme/products/product-data.js';
 
-const SQUARE_VERSION = '2026-01-21';
+const SQUARE_VERSION = '2026-01-22';
 
 const json = (body, init = {}) =>
   new Response(JSON.stringify(body), {
