@@ -19,6 +19,9 @@ export const products = {
       imageSrc: '/sites/somme/assets/images/products/sensual-tsp.png',
       imageAlt: 'sensual tea blend product',
     },
+    square: {
+      searchTerm: 'sensual',
+    },
   },
   sovereign: {
     slug: 'sovereign',
@@ -38,6 +41,9 @@ export const products = {
       imageSrc: '/sites/somme/assets/images/products/sovereign-tsp.png',
       imageAlt: 'sovereign tea blend product',
     },
+    square: {
+      searchTerm: 'sovereign',
+    },
   },
   steady: {
     slug: 'steady',
@@ -56,6 +62,9 @@ export const products = {
       ingredients: ['white pine', 'dandelion root', 'cacao'],
       imageSrc: '/sites/somme/assets/images/products/steady-tsp.png',
       imageAlt: 'steady tea blend product',
+    },
+    square: {
+      searchTerm: 'steady',
     },
   },
 };
@@ -82,6 +91,11 @@ export const buildProductPageConfig = (slug) => {
       '--color-text-soft': '#66614e',
     },
     product: entry.product,
+    square: {
+      slug,
+      endpoint: `/api/catalog/${slug}`,
+      ...entry.square,
+    },
     navigation: {
       homeHref: '/',
       homeLabel: 'sōmme',

@@ -22,6 +22,48 @@ const buildIngredientList = (ingredients = []) => {
   return list;
 };
 
+const hydrateSquareData = async (config, refs) => {
+  const endpoint = config.square?.endpoint;
+
+  if (!endpoint) {
+    return;
+  }
+
+  try {
+    const response = await fetch(endpoint, {
+      headers: {
+        accept: 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      return;
+    }
+
+    const payload = await response.json();
+    const squareProduct = payload.product;
+
+    if (!squareProduct) {
+      return;
+    }
+
+    refs.detailLink.dataset.squareSlug = squareProduct.slug || '';
+    refs.detailLink.dataset.squareItemId = squareProduct.itemId || '';
+    refs.detailLink.dataset.squareVariationId = squareProduct.variationId || '';
+    refs.detailLink.dataset.squareLocationId = squareProduct.locationId || '';
+    refs.detailLink.dataset.squarePriceAmount =
+      typeof squareProduct.priceAmount === 'number' ? String(squareProduct.priceAmount) : '';
+    refs.detailLink.dataset.squareCurrencyCode = squareProduct.currencyCode || '';
+    refs.detailLink.dataset.squarePriceFormatted = squareProduct.priceFormatted || '';
+
+    if (squareProduct.itemName) {
+      refs.detailLink.setAttribute('aria-label', `add ${squareProduct.itemName} to cart`);
+    }
+  } catch (error) {
+    refs.detailLink.dataset.squareError = 'unavailable';
+  }
+};
+
 export const createProductPage = (config) => {
   const root = document.querySelector(config.rootSelector || '#app');
 
@@ -115,4 +157,8 @@ export const createProductPage = (config) => {
   page.append(header, stage);
 
   root.replaceChildren(page);
+
+  hydrateSquareData(config, {
+    detailLink,
+  });
 };
