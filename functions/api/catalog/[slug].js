@@ -40,6 +40,44 @@ const getVariationPrice = (item = {}) => {
   return pricedVariation || variations[0] || null;
 };
 
+const getLocationOverride = (variation = {}, locationId) => {
+  const overrides = variation.item_variation_data?.location_overrides || [];
+
+  if (!locationId) {
+    return overrides[0] || null;
+  }
+
+  return overrides.find((override) => override.location_id === locationId) || null;
+};
+
+const getVariationInventory = async ({
+  baseUrl,
+  accessToken,
+  locationId,
+  variationId,
+}) => {
+  if (!variationId || !locationId) {
+    return null;
+  }
+
+  const response = await fetch(
+    `${baseUrl}/v2/inventory/${variationId}?location_ids=${encodeURIComponent(locationId)}`,
+    {
+      headers: {
+        authorization: `Bearer ${accessToken}`,
+        'square-version': SQUARE_VERSION,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    return null;
+  }
+
+  const payload = await response.json();
+  return payload.counts || [];
+};
+
 const scoreItem = (item, lookup) => {
   const itemName = normalizeText(item.item_data?.name);
 
@@ -64,9 +102,27 @@ const selectBestMatch = (items, lookup) =>
     .filter(({ score }) => score > 0)
     .sort((left, right) => right.score - left.score)[0]?.item || null;
 
-const normalizeCatalogItem = (slug, item, locationId) => {
+const normalizeCatalogItem = async (slug, item, locationId, env) => {
   const variation = getVariationPrice(item);
   const priceMoney = variation?.item_variation_data?.price_money;
+  const variationData = variation?.item_variation_data || {};
+  const locationOverride = getLocationOverride(variation, locationId);
+  const inventoryCounts = await getVariationInventory({
+    baseUrl: getSquareBaseUrl(env.SQUARE_ENVIRONMENT),
+    accessToken: env.SQUARE_ACCESS_TOKEN,
+    locationId,
+    variationId: variation?.id,
+  });
+  const inStockCount = inventoryCounts
+    ? inventoryCounts
+        .filter((count) => count.state === 'IN_STOCK')
+        .reduce((sum, count) => sum + Number(count.quantity || 0), 0)
+    : null;
+  const soldOut = Boolean(locationOverride?.sold_out);
+  const trackInventory = Boolean(
+    locationOverride?.track_inventory ?? variationData.track_inventory
+  );
+  const available = soldOut ? false : trackInventory && inStockCount !== null ? inStockCount > 0 : true;
 
   return {
     slug,
@@ -79,6 +135,10 @@ const normalizeCatalogItem = (slug, item, locationId) => {
     currencyCode: priceMoney?.currency ?? null,
     priceFormatted: formatMoney(priceMoney?.amount, priceMoney?.currency),
     locationId: locationId || null,
+    available,
+    soldOut,
+    trackInventory,
+    inStockCount,
   };
 };
 
@@ -146,7 +206,7 @@ export const onRequestGet = async ({ env, params }) => {
 
   return json(
     {
-      product: normalizeCatalogItem(slug, match, env.SQUARE_LOCATION_ID),
+      product: await normalizeCatalogItem(slug, match, env.SQUARE_LOCATION_ID, env),
     },
     {
       headers: {

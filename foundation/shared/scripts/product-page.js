@@ -125,10 +125,6 @@ const renderCartDrawer = (refs) => {
     title.className = 'cart-drawer-item-title';
     title.textContent = item.name;
 
-    const meta = document.createElement('p');
-    meta.className = 'cart-drawer-item-meta';
-    meta.textContent = '';
-
     const price = document.createElement('p');
     price.className = 'cart-drawer-item-price';
     const unitPrice =
@@ -159,7 +155,7 @@ const renderCartDrawer = (refs) => {
     plus.addEventListener('click', () => updateCartItemQuantity(item.variationId, 1));
 
     controls.append(minus, quantity, plus);
-    body.append(title, meta, price, controls);
+    body.append(title, price, controls);
     row.append(image, body);
     drawerItems.append(row);
   });
@@ -255,14 +251,35 @@ const hydrateSquareData = async (config, refs) => {
     refs.detailLink.dataset.squarePriceFormatted = squareProduct.priceFormatted || '';
     refs.price.textContent = squareProduct.priceFormatted || '';
     refs.price.hidden = !squareProduct.priceFormatted;
+    refs.detailLink.dataset.squareAvailable = squareProduct.available ? 'true' : 'false';
 
     if (squareProduct.itemName) {
       refs.detailLink.setAttribute('aria-label', `add ${squareProduct.itemName} to cart`);
     }
 
-    refs.detailLink.dataset.squareReady = 'true';
-    refs.detailLink.removeAttribute('aria-disabled');
-    refs.detailLink.classList.remove('is-loading');
+    const isPurchasable = Boolean(
+      squareProduct.available &&
+      squareProduct.variationId &&
+      typeof squareProduct.priceAmount === 'number'
+    );
+
+    if (isPurchasable) {
+      refs.detailLink.dataset.squareReady = 'true';
+      refs.detailLink.removeAttribute('aria-disabled');
+      refs.detailLink.classList.remove('is-loading', 'is-sold-out');
+      refs.detailLink.textContent = 'add to cart';
+    } else if (squareProduct.available === false) {
+      refs.detailLink.dataset.squareReady = 'false';
+      refs.detailLink.setAttribute('aria-disabled', 'true');
+      refs.detailLink.classList.remove('is-loading');
+      refs.detailLink.classList.add('is-sold-out');
+      refs.detailLink.textContent = 'sold out';
+    } else {
+      refs.detailLink.dataset.squareReady = 'false';
+      refs.detailLink.setAttribute('aria-disabled', 'true');
+      refs.detailLink.classList.remove('is-loading', 'is-sold-out');
+      refs.detailLink.textContent = 'unavailable';
+    }
 
     syncCartItemMetadata({
       slug: config.square?.slug || config.product.slug,
@@ -278,6 +295,8 @@ const hydrateSquareData = async (config, refs) => {
   } catch (error) {
     refs.detailLink.dataset.squareError = 'unavailable';
     refs.detailLink.classList.remove('is-loading');
+    refs.detailLink.dataset.squareReady = 'false';
+    refs.detailLink.textContent = 'unavailable';
   }
 };
 

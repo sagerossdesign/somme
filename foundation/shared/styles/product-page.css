@@ -387,6 +387,12 @@ html.is-product-page-transitioning body {
   pointer-events: none;
 }
 
+.product-detail-link.is-sold-out {
+  opacity: 0.45;
+  text-decoration: none;
+  pointer-events: none;
+}
+
 @media (max-width: 820px) {
   .product-page {
     height: 100svh;
