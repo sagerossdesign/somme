@@ -167,8 +167,10 @@ html.is-product-page-transitioning body {
 .cart-drawer-subtotal-value,
 .cart-drawer-item-title,
 .cart-drawer-item-meta,
+.cart-drawer-item-price,
 .cart-drawer-close,
 .cart-drawer-quantity-button,
+.cart-drawer-checkout,
 .cart-drawer-quantity,
 .cart-drawer-empty {
   margin: 0;
@@ -232,6 +234,10 @@ html.is-product-page-transitioning body {
   color: var(--product-muted);
 }
 
+.cart-drawer-item-price {
+  font-size: 0.84rem;
+}
+
 .cart-drawer-item-controls {
   gap: 0.55rem;
 }
@@ -242,6 +248,11 @@ html.is-product-page-transitioning body {
 }
 
 .cart-drawer-checkout {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: var(--nav-font-size, 0.76rem);
+  letter-spacing: var(--nav-letter-spacing, 0.1em);
+  text-transform: lowercase;
   text-decoration: underline;
   text-underline-offset: 0.16em;
 }

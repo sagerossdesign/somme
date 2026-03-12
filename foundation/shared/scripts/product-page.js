@@ -127,7 +127,17 @@ const renderCartDrawer = (refs) => {
 
     const meta = document.createElement('p');
     meta.className = 'cart-drawer-item-meta';
-    meta.textContent = item.priceFormatted || formatCurrency(item.priceAmount, item.currencyCode) || '';
+    meta.textContent = `qty ${item.quantity}`;
+
+    const price = document.createElement('p');
+    price.className = 'cart-drawer-item-price';
+    const unitPrice =
+      item.priceFormatted || formatCurrency(item.priceAmount, item.currencyCode) || '';
+    const lineTotal = formatCurrency(
+      Number(item.priceAmount || 0) * Number(item.quantity || 0),
+      item.currencyCode
+    );
+    price.textContent = lineTotal || unitPrice;
 
     const controls = document.createElement('div');
     controls.className = 'cart-drawer-item-controls';
@@ -149,7 +159,7 @@ const renderCartDrawer = (refs) => {
     plus.addEventListener('click', () => updateCartItemQuantity(item.variationId, 1));
 
     controls.append(minus, quantity, plus);
-    body.append(title, meta, controls);
+    body.append(title, meta, price, controls);
     row.append(image, body);
     drawerItems.append(row);
   });
