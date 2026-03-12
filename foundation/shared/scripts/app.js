@@ -194,7 +194,7 @@ const mountCartShell = (root, header, pageFrame, meta = {}) => {
 
       const metaLine = document.createElement('p');
       metaLine.className = 'cart-drawer-item-meta';
-      metaLine.textContent = `qty ${item.quantity}`;
+      metaLine.textContent = '';
 
       const priceLine = document.createElement('p');
       priceLine.className = 'cart-drawer-item-price';

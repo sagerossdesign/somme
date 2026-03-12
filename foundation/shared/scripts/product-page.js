@@ -127,7 +127,7 @@ const renderCartDrawer = (refs) => {
 
     const meta = document.createElement('p');
     meta.className = 'cart-drawer-item-meta';
-    meta.textContent = `qty ${item.quantity}`;
+    meta.textContent = '';
 
     const price = document.createElement('p');
     price.className = 'cart-drawer-item-price';
