@@ -24,20 +24,7 @@ html.is-product-page-transitioning body {
   width: 100vw;
   height: 100svh;
   padding: 0 var(--page-pad, clamp(1rem, 2.5vw, 2rem)) 2rem;
-  opacity: 1;
-  transition: opacity 280ms ease, width 520ms ease;
-}
-
-.product-page.is-transition-enter {
-  opacity: 0;
-}
-
-.product-page.is-transition-enter.is-transition-enter-active {
-  opacity: 1;
-}
-
-.product-page.is-transition-exit {
-  opacity: 0;
+  transition: width 520ms ease;
 }
 
 .product-page-shell.is-cart-open .product-page {
@@ -257,6 +244,20 @@ html.is-product-page-transitioning body {
   display: grid;
   grid-template-columns: minmax(2.75rem, 6rem) minmax(0, 1fr) minmax(2.75rem, 6rem);
   align-items: center;
+  opacity: 1;
+  transition: opacity 280ms ease;
+}
+
+.product-stage.is-transition-enter {
+  opacity: 0;
+}
+
+.product-stage.is-transition-enter.is-transition-enter-active {
+  opacity: 1;
+}
+
+.product-stage.is-transition-exit {
+  opacity: 0;
 }
 
 .product-nav-link {

@@ -198,7 +198,7 @@ const bindProductPageTransition = (link) => {
     event.preventDefault();
     window.sessionStorage.setItem(PRODUCT_PAGE_TRANSITION_KEY, '1');
     document.documentElement.classList.add('is-product-page-transitioning');
-    document.querySelector('.product-page')?.classList.add('is-transition-exit');
+    document.querySelector('.product-stage')?.classList.add('is-transition-exit');
 
     window.setTimeout(() => {
       window.location.href = href;
@@ -413,7 +413,7 @@ export const createProductPage = (config) => {
 
   shell.append(page, drawer);
   root.replaceChildren(shell);
-  applyEntryTransitionState(page);
+  applyEntryTransitionState(stage);
 
   const handleCartSync = () => {
     syncCartUi(cartLink, cartCount, shell);
