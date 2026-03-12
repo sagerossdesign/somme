@@ -7,7 +7,9 @@ import {
   getCartUiState,
   setCartState,
   setCartUiState,
+  syncCartItemMetadata,
 } from './cart-state.js';
+import { startSquareCheckout } from './cart-checkout.js';
 
 const PRODUCT_PAGE_TRANSITION_KEY = 'somme-product-transition';
 const PRODUCT_PAGE_TRANSITION_MS = 280;
@@ -90,7 +92,7 @@ const updateCartItemQuantity = (variationId, delta) => {
 
 const renderCartDrawer = (refs) => {
   const state = getCartState();
-  const { drawerItems, drawerSubtotalValue, drawerEmpty, shell } = refs;
+  const { drawerItems, drawerSubtotalValue, drawerEmpty, drawerCheckout, shell } = refs;
   const count = getCartCount(state);
 
   drawerItems.replaceChildren();
@@ -98,11 +100,13 @@ const renderCartDrawer = (refs) => {
   if (count === 0) {
     drawerEmpty.hidden = false;
     drawerSubtotalValue.textContent = '';
+    drawerCheckout.disabled = true;
     shell.classList.remove('is-cart-open');
     return;
   }
 
   drawerEmpty.hidden = true;
+  drawerCheckout.disabled = false;
 
   state.items.forEach((item) => {
     const row = document.createElement('article');
@@ -239,12 +243,31 @@ const hydrateSquareData = async (config, refs) => {
       typeof squareProduct.priceAmount === 'number' ? String(squareProduct.priceAmount) : '';
     refs.detailLink.dataset.squareCurrencyCode = squareProduct.currencyCode || '';
     refs.detailLink.dataset.squarePriceFormatted = squareProduct.priceFormatted || '';
+    refs.price.textContent = squareProduct.priceFormatted || '';
+    refs.price.hidden = !squareProduct.priceFormatted;
 
     if (squareProduct.itemName) {
       refs.detailLink.setAttribute('aria-label', `add ${squareProduct.itemName} to cart`);
     }
+
+    refs.detailLink.dataset.squareReady = 'true';
+    refs.detailLink.removeAttribute('aria-disabled');
+    refs.detailLink.classList.remove('is-loading');
+
+    syncCartItemMetadata({
+      slug: config.square?.slug || config.product.slug,
+      name: squareProduct.itemName || config.product.name,
+      itemId: squareProduct.itemId,
+      variationId: squareProduct.variationId,
+      locationId: squareProduct.locationId,
+      priceAmount: squareProduct.priceAmount,
+      currencyCode: squareProduct.currencyCode,
+      priceFormatted: squareProduct.priceFormatted,
+      imageSrc: config.product.imageSrc,
+    });
   } catch (error) {
     refs.detailLink.dataset.squareError = 'unavailable';
+    refs.detailLink.classList.remove('is-loading');
   }
 };
 
@@ -345,6 +368,10 @@ export const createProductPage = (config) => {
   description.className = 'product-description';
   description.textContent = product.description;
 
+  const price = document.createElement('p');
+  price.className = 'product-price';
+  price.hidden = true;
+
   const ingredientsLabel = document.createElement('p');
   ingredientsLabel.className = 'product-ingredients-label';
   ingredientsLabel.textContent = product.ingredientsLabel || 'botanicals';
@@ -355,11 +382,14 @@ export const createProductPage = (config) => {
   detailLink.className = 'product-detail-link';
   detailLink.href = navigation.backHref || '../index.html#tea';
   detailLink.textContent = navigation.backLabel || 'back to teas';
+  detailLink.classList.add('is-loading');
+  detailLink.setAttribute('aria-disabled', 'true');
 
   content.append(
     category,
     imageFrame,
     description,
+    price,
     ingredientsLabel,
     ingredients,
     detailLink
@@ -408,7 +438,14 @@ export const createProductPage = (config) => {
   const drawerSubtotalValue = document.createElement('span');
   drawerSubtotalValue.className = 'cart-drawer-subtotal-value';
 
+  const drawerCheckout = document.createElement('button');
+  drawerCheckout.type = 'button';
+  drawerCheckout.className = 'cart-drawer-checkout';
+  drawerCheckout.textContent = 'checkout';
+  drawerCheckout.disabled = true;
+
   drawerFooter.append(drawerSubtotalLabel, drawerSubtotalValue);
+  drawerFooter.append(drawerCheckout);
   drawer.append(drawerHeader, drawerBody, drawerFooter);
 
   shell.append(page, drawer);
@@ -422,6 +459,7 @@ export const createProductPage = (config) => {
       drawerItems,
       drawerSubtotalValue,
       drawerEmpty,
+      drawerCheckout,
     });
   };
   window.addEventListener('storage', handleCartSync);
@@ -456,9 +494,18 @@ export const createProductPage = (config) => {
 
   detailLink.addEventListener('click', (event) => {
     event.preventDefault();
+
+    if (detailLink.dataset.squareReady !== 'true') {
+      return;
+    }
+
     addCartItem(config, {
       detailLink,
     });
+  });
+
+  drawerCheckout.addEventListener('click', () => {
+    startSquareCheckout(drawerCheckout);
   });
 
   handleCartSync();
@@ -468,5 +515,6 @@ export const createProductPage = (config) => {
 
   hydrateSquareData(config, {
     detailLink,
+    price,
   });
 };

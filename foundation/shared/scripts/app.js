@@ -12,6 +12,7 @@ import {
   setCartState,
   setCartUiState,
 } from './cart-state.js';
+import { startSquareCheckout } from './cart-checkout.js';
 import { renderCardGrid } from './sections/card-grid.js';
 import { renderCtaBand } from './sections/cta-band.js';
 import { renderBackgroundStage } from './sections/background-stage.js';
@@ -138,7 +139,14 @@ const mountCartShell = (root, header, pageFrame, meta = {}) => {
 
   const drawerSubtotalValue = document.createElement('span');
   drawerSubtotalValue.className = 'cart-drawer-subtotal-value';
-  drawerFooter.append(drawerSubtotalLabel, drawerSubtotalValue);
+
+  const drawerCheckout = document.createElement('button');
+  drawerCheckout.type = 'button';
+  drawerCheckout.className = 'cart-drawer-checkout';
+  drawerCheckout.textContent = 'checkout';
+  drawerCheckout.disabled = true;
+
+  drawerFooter.append(drawerSubtotalLabel, drawerSubtotalValue, drawerCheckout);
 
   drawer.append(drawerHeader, drawerBody, drawerFooter);
   shell.append(pageFrame, drawer);
@@ -158,12 +166,14 @@ const mountCartShell = (root, header, pageFrame, meta = {}) => {
     if (!hasItems) {
       drawerEmpty.hidden = false;
       drawerSubtotalValue.textContent = '';
+      drawerCheckout.disabled = true;
       shell.classList.remove('is-cart-open');
       setCartUiState({ isOpen: false });
       return;
     }
 
     drawerEmpty.hidden = true;
+    drawerCheckout.disabled = false;
 
     state.items.forEach((item) => {
       const row = document.createElement('article');
@@ -235,6 +245,10 @@ const mountCartShell = (root, header, pageFrame, meta = {}) => {
   drawerClose.addEventListener('click', () => {
     shell.classList.remove('is-cart-open');
     setCartUiState({ isOpen: false });
+  });
+
+  drawerCheckout.addEventListener('click', () => {
+    startSquareCheckout(drawerCheckout);
   });
 
   window.addEventListener('keydown', (event) => {

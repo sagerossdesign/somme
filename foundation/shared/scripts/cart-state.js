@@ -72,3 +72,39 @@ export const setCartUiState = (state) => {
   window.localStorage.setItem(CART_UI_STORAGE_KEY, JSON.stringify(normalized));
   window.dispatchEvent(new CustomEvent('somme:cart-ui-updated', { detail: normalized }));
 };
+
+export const syncCartItemMetadata = (payload = {}) => {
+  const state = getCartState();
+  let hasChanges = false;
+
+  state.items = state.items.map((item) => {
+    const matchesVariation =
+      payload.variationId && item.variationId && item.variationId === payload.variationId;
+    const matchesSlug = payload.slug && item.slug === payload.slug;
+
+    if (!matchesVariation && !matchesSlug) {
+      return item;
+    }
+
+    hasChanges = true;
+
+    return {
+      ...item,
+      name: payload.name || item.name,
+      itemId: payload.itemId || item.itemId,
+      variationId: payload.variationId || item.variationId,
+      locationId: payload.locationId || item.locationId,
+      priceAmount:
+        payload.priceAmount !== undefined && payload.priceAmount !== null
+          ? String(payload.priceAmount)
+          : item.priceAmount,
+      currencyCode: payload.currencyCode || item.currencyCode,
+      priceFormatted: payload.priceFormatted || item.priceFormatted,
+      imageSrc: payload.imageSrc || item.imageSrc,
+    };
+  });
+
+  if (hasChanges) {
+    setCartState(state);
+  }
+};

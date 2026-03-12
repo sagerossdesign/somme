@@ -176,6 +176,7 @@
 .cart-drawer-footer {
   justify-content: space-between;
   gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .cart-drawer-title,
@@ -199,7 +200,8 @@
 }
 
 .cart-drawer-close,
-.cart-drawer-quantity-button {
+.cart-drawer-quantity-button,
+.cart-drawer-checkout {
   border: 0;
   padding: 0;
   background: transparent;
@@ -254,6 +256,16 @@
 .cart-drawer-quantity-button,
 .cart-drawer-quantity {
   font-size: 0.82rem;
+}
+
+.cart-drawer-checkout {
+  text-decoration: underline;
+  text-underline-offset: 0.16em;
+}
+
+.cart-drawer-checkout:disabled {
+  opacity: 0.4;
+  cursor: default;
 }
 
 .viewport-stage {
