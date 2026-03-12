@@ -52,6 +52,11 @@ html.is-product-page-transitioning body {
   align-items: center;
   padding: 1.35rem var(--page-pad, clamp(1rem, 2.5vw, 2rem));
   z-index: 4;
+  transition: right 520ms ease;
+}
+
+.product-page-shell.is-cart-open .site-header {
+  right: var(--cart-drawer-width);
 }
 
 .site-home-link,

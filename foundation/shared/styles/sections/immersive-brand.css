@@ -56,10 +56,12 @@
   justify-content: flex-end;
   padding: 1.35rem var(--page-pad);
   transition: width 520ms ease;
+  transition-property: width, right;
 }
 
 .site-shell.is-cart-open .site-header {
   width: calc(100vw - var(--cart-drawer-width, min(25rem, 36vw)));
+  right: var(--cart-drawer-width, min(25rem, 36vw));
 }
 
 .site-nav,
