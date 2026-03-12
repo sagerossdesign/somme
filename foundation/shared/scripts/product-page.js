@@ -1,5 +1,7 @@
 import { applyTheme, setDocumentMeta } from './utils.js';
 
+const CART_STORAGE_KEY = 'somme-cart';
+
 const buildNavLink = ({ href, label, ariaLabel, direction }) => {
   const link = document.createElement('a');
   link.className = `product-nav-link product-nav-link-${direction}`;
@@ -20,6 +22,69 @@ const buildIngredientList = (ingredients = []) => {
   });
 
   return list;
+};
+
+const getCartState = () => {
+  try {
+    const raw = window.localStorage.getItem(CART_STORAGE_KEY);
+
+    if (!raw) {
+      return { items: [] };
+    }
+
+    const parsed = JSON.parse(raw);
+
+    if (!Array.isArray(parsed.items)) {
+      return { items: [] };
+    }
+
+    return parsed;
+  } catch (error) {
+    return { items: [] };
+  }
+};
+
+const setCartState = (state) => {
+  window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(state));
+  window.dispatchEvent(new CustomEvent('somme:cart-updated', { detail: state }));
+};
+
+const getCartCount = (state = getCartState()) =>
+  state.items.reduce((sum, item) => sum + (item.quantity || 0), 0);
+
+const syncCartUi = (cartLink, countNode) => {
+  const count = getCartCount();
+  const hasItems = count > 0;
+
+  countNode.textContent = String(count);
+  cartLink.classList.toggle('is-visible', hasItems);
+  cartLink.setAttribute('aria-hidden', hasItems ? 'false' : 'true');
+  cartLink.tabIndex = hasItems ? 0 : -1;
+};
+
+const addCartItem = (config, refs) => {
+  const state = getCartState();
+  const variationId = refs.detailLink.dataset.squareVariationId || config.product.slug || config.product.name;
+  const existing = state.items.find((item) => item.variationId === variationId);
+
+  if (existing) {
+    existing.quantity += 1;
+  } else {
+    state.items.push({
+      slug: config.square?.slug || config.product.slug || '',
+      name: config.product.name,
+      variationId,
+      itemId: refs.detailLink.dataset.squareItemId || '',
+      locationId: refs.detailLink.dataset.squareLocationId || '',
+      quantity: 1,
+      priceAmount: refs.detailLink.dataset.squarePriceAmount || '',
+      currencyCode: refs.detailLink.dataset.squareCurrencyCode || '',
+      priceFormatted: refs.detailLink.dataset.squarePriceFormatted || '',
+      imageSrc: config.product.imageSrc,
+    });
+  }
+
+  setCartState(state);
 };
 
 const hydrateSquareData = async (config, refs) => {
@@ -80,7 +145,12 @@ export const createProductPage = (config) => {
   page.className = 'product-page';
 
   const header = document.createElement('header');
-  header.className = 'site-header site-header-nav-only';
+  header.className = 'site-header';
+
+  const brandLink = document.createElement('a');
+  brandLink.className = 'site-home-link';
+  brandLink.href = navigation.homeHref || '/';
+  brandLink.textContent = navigation.homeLabel || 'sōmme';
 
   const headerNav = document.createElement('nav');
   headerNav.className = 'site-nav';
@@ -93,7 +163,27 @@ export const createProductPage = (config) => {
     headerNav.append(link);
   });
 
-  header.append(headerNav);
+  const headerControls = document.createElement('div');
+  headerControls.className = 'site-header-controls';
+
+  const cartLink = document.createElement('a');
+  cartLink.className = 'site-cart-link';
+  cartLink.href = navigation.cartHref || '#';
+  cartLink.setAttribute('aria-label', navigation.cartLabel || 'cart');
+
+  const cartIcon = document.createElement('img');
+  cartIcon.className = 'site-cart-icon';
+  cartIcon.src = config.meta?.favicon || '/sites/somme/assets/images/favicon.png';
+  cartIcon.alt = '';
+  cartIcon.setAttribute('aria-hidden', 'true');
+
+  const cartCount = document.createElement('span');
+  cartCount.className = 'site-cart-count';
+  cartCount.textContent = '0';
+
+  cartLink.append(cartIcon, cartCount);
+  headerControls.append(headerNav, cartLink);
+  header.append(brandLink, headerControls);
 
   const stage = document.createElement('section');
   stage.className = 'product-stage';
@@ -157,6 +247,19 @@ export const createProductPage = (config) => {
   page.append(header, stage);
 
   root.replaceChildren(page);
+
+  const handleCartSync = () => syncCartUi(cartLink, cartCount);
+  window.addEventListener('storage', handleCartSync);
+  window.addEventListener('somme:cart-updated', handleCartSync);
+
+  detailLink.addEventListener('click', (event) => {
+    event.preventDefault();
+    addCartItem(config, {
+      detailLink,
+    });
+  });
+
+  handleCartSync();
 
   hydrateSquareData(config, {
     detailLink,

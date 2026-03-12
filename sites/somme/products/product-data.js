@@ -89,6 +89,8 @@ export const buildProductPageConfig = (slug) => {
       '--color-page-bg': '#fafafa',
       '--color-text-primary': '#66614e',
       '--color-text-soft': '#66614e',
+      '--nav-font-size': '0.76rem',
+      '--nav-letter-spacing': '0.1em',
     },
     product: entry.product,
     square: {
