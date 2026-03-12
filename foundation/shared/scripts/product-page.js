@@ -1,6 +1,14 @@
 import { applyTheme, setDocumentMeta } from './utils.js';
+import {
+  formatCurrency,
+  getCartCount,
+  getCartState,
+  getCartSubtotal,
+  getCartUiState,
+  setCartState,
+  setCartUiState,
+} from './cart-state.js';
 
-const CART_STORAGE_KEY = 'somme-cart';
 const PRODUCT_PAGE_TRANSITION_KEY = 'somme-product-transition';
 const PRODUCT_PAGE_TRANSITION_MS = 280;
 
@@ -26,52 +34,6 @@ const buildIngredientList = (ingredients = []) => {
   return list;
 };
 
-const getCartState = () => {
-  try {
-    const raw = window.localStorage.getItem(CART_STORAGE_KEY);
-
-    if (!raw) {
-      return { items: [] };
-    }
-
-    const parsed = JSON.parse(raw);
-
-    if (!Array.isArray(parsed.items)) {
-      return { items: [] };
-    }
-
-    return parsed;
-  } catch (error) {
-    return { items: [] };
-  }
-};
-
-const setCartState = (state) => {
-  window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(state));
-  window.dispatchEvent(new CustomEvent('somme:cart-updated', { detail: state }));
-};
-
-const getCartCount = (state = getCartState()) =>
-  state.items.reduce((sum, item) => sum + (item.quantity || 0), 0);
-
-const formatCurrency = (amount, currencyCode) => {
-  if (!amount || !currencyCode) {
-    return null;
-  }
-
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: currencyCode,
-  }).format(Number(amount) / 100);
-};
-
-const getCartSubtotal = (state = getCartState()) =>
-  state.items.reduce((sum, item) => {
-    const amount = Number(item.priceAmount || 0);
-    const quantity = Number(item.quantity || 0);
-    return sum + amount * quantity;
-  }, 0);
-
 const syncCartUi = (cartLink, countNode, shell) => {
   const state = getCartState();
   const count = getCartCount(state);
@@ -84,6 +46,7 @@ const syncCartUi = (cartLink, countNode, shell) => {
 
   if (!hasItems) {
     shell?.classList.remove('is-cart-open');
+    setCartUiState({ isOpen: false });
   }
 };
 
@@ -463,6 +426,9 @@ export const createProductPage = (config) => {
   };
   window.addEventListener('storage', handleCartSync);
   window.addEventListener('somme:cart-updated', handleCartSync);
+  window.addEventListener('somme:cart-ui-updated', () => {
+    shell.classList.toggle('is-cart-open', getCartUiState().isOpen && getCartCount() > 0);
+  });
 
   cartLink.addEventListener('click', (event) => {
     event.preventDefault();
@@ -471,16 +437,20 @@ export const createProductPage = (config) => {
       return;
     }
 
-    shell.classList.toggle('is-cart-open');
+    const nextIsOpen = !shell.classList.contains('is-cart-open');
+    shell.classList.toggle('is-cart-open', nextIsOpen);
+    setCartUiState({ isOpen: nextIsOpen });
   });
 
   drawerClose.addEventListener('click', () => {
     shell.classList.remove('is-cart-open');
+    setCartUiState({ isOpen: false });
   });
 
   window.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
       shell.classList.remove('is-cart-open');
+      setCartUiState({ isOpen: false });
     }
   });
 
@@ -492,6 +462,7 @@ export const createProductPage = (config) => {
   });
 
   handleCartSync();
+  shell.classList.toggle('is-cart-open', getCartUiState().isOpen && getCartCount() > 0);
   bindProductPageTransition(prevLink);
   bindProductPageTransition(nextLink);
 
