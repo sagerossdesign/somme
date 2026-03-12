@@ -1,0 +1,47 @@
+:root {
+  --page-pad: clamp(1rem, 2.5vw, 2rem);
+  --color-page-bg: #fafafa;
+  --color-text-primary: #faf8f2;
+  --color-text-soft: rgba(250, 248, 242, 0.78);
+  --font-body: system-ui, sans-serif;
+  --font-display: Georgia, serif;
+  --header-height: 4.75rem;
+  --hero-scroll-length: 2200svh;
+  --hero-tagline-size: clamp(0.95rem, 1.8vw, 1.2rem);
+  --background-overlay:
+    linear-gradient(180deg, rgba(19, 23, 17, 0.44) 0%, rgba(19, 23, 17, 0.3) 40%, rgba(19, 23, 17, 0.56) 100%),
+    rgba(126, 135, 109, 0.12);
+  --logo-filter: none;
+  --nav-font-size: 0.88rem;
+  --nav-letter-spacing: 0.12em;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  background: var(--color-page-bg);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+}

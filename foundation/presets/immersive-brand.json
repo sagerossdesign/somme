@@ -1,0 +1,12 @@
+{
+  "project_type": "immersive-brand",
+  "section_order": [
+    "background",
+    "header",
+    "hero-stage",
+    "hero-track",
+    "footer"
+  ],
+  "animation_profile": "fade-stage",
+  "scroll_notes": "Single pinned hero with deterministic fade timing"
+}

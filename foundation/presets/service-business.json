@@ -1,0 +1,14 @@
+{
+  "project_type": "service-business",
+  "section_order": [
+    "header",
+    "hero",
+    "services",
+    "proof",
+    "process",
+    "cta",
+    "footer"
+  ],
+  "animation_profile": "minimal-scroll-reveal",
+  "scroll_notes": "Prefer deterministic scroll behavior over novelty animations"
+}

@@ -1,0 +1,13 @@
+{
+  "project_type": "ecommerce-brand",
+  "section_order": [
+    "header",
+    "hero",
+    "featured-products",
+    "story",
+    "subscription-or-offer",
+    "footer"
+  ],
+  "animation_profile": "horizontal-product-story",
+  "scroll_notes": "Optimize for both mouse wheel and trackpad during pinned sections"
+}

@@ -1,0 +1,15 @@
+{
+  "project_type": "immersive-brand",
+  "section_order": [
+    "background",
+    "header",
+    "hero",
+    "story",
+    "rituals",
+    "method",
+    "journal",
+    "footer"
+  ],
+  "animation_profile": "reveal-sections",
+  "scroll_notes": "Atmospheric static hero plus deterministic section reveals"
+}

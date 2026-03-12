@@ -1,0 +1,14 @@
+{
+  "project_type": "portfolio-studio",
+  "section_order": [
+    "header",
+    "hero",
+    "selected-work",
+    "capabilities",
+    "testimonials",
+    "contact",
+    "footer"
+  ],
+  "animation_profile": "staggered-work-reveal",
+  "scroll_notes": "Favor clarity and pacing over heavy pinning"
+}

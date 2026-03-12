@@ -1,0 +1,10 @@
+/*
+  Brand-only stylesheet.
+  Use this file for font-face declarations or one-off visual overrides.
+  Shared layout and section styling live in ../../foundation/shared/styles/.
+*/
+
+:root {
+  --button-bg: #f5f2ea;
+  --button-text: #161713;
+}

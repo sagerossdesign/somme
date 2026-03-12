@@ -1,0 +1,3 @@
+display_name: Site Foundation Architect
+short_description: Create new project types from the shared website foundation
+default_prompt: Generate a new website project from foundation presets and build it end-to-end from my brief.
