@@ -78,29 +78,50 @@ const getVariationInventory = async ({
   return payload.counts || [];
 };
 
-const scoreItem = (item, lookup) => {
-  const itemName = normalizeText(item.item_data?.name);
+const listCatalogItems = async ({ baseUrl, accessToken }) => {
+  let cursor;
+  const items = [];
 
-  if (itemName === lookup) {
-    return 3;
-  }
+  do {
+    const query = new URLSearchParams({
+      types: 'ITEM',
+    });
 
-  if (itemName.startsWith(lookup)) {
-    return 2;
-  }
+    if (cursor) {
+      query.set('cursor', cursor);
+    }
 
-  if (itemName.includes(lookup)) {
-    return 1;
-  }
+    const response = await fetch(`${baseUrl}/v2/catalog/list?${query.toString()}`, {
+      headers: {
+        authorization: `Bearer ${accessToken}`,
+        'square-version': SQUARE_VERSION,
+      },
+    });
 
-  return 0;
+    if (!response.ok) {
+      const details = await response.text();
+      throw new Error(details || 'catalog_list_failed');
+    }
+
+    const payload = await response.json();
+    items.push(...(payload.objects || []));
+    cursor = payload.cursor;
+  } while (cursor);
+
+  return items;
 };
 
-const selectBestMatch = (items, lookup) =>
-  [...items]
-    .map((item) => ({ item, score: scoreItem(item, lookup) }))
-    .filter(({ score }) => score > 0)
-    .sort((left, right) => right.score - left.score)[0]?.item || null;
+const findCatalogItemByExactName = (items, lookup) => {
+  const normalizedLookup = normalizeText(lookup);
+
+  return items.find((item) => {
+    if (item.type !== 'ITEM' || item.is_deleted || item.item_data?.is_archived) {
+      return false;
+    }
+
+    return normalizeText(item.item_data?.name) === normalizedLookup;
+  }) || null;
+};
 
 const normalizeCatalogItem = async (slug, item, locationId, env) => {
   const variation = getVariationPrice(item);
@@ -162,43 +183,37 @@ export const onRequestGet = async ({ env, params }) => {
 
   const searchTerm = entry.square?.searchTerm || entry.product?.name || slug;
   const baseUrl = getSquareBaseUrl(env.SQUARE_ENVIRONMENT);
+  let items;
 
-  const response = await fetch(`${baseUrl}/v2/catalog/search-catalog-items`, {
-    method: 'POST',
-    headers: {
-      authorization: `Bearer ${env.SQUARE_ACCESS_TOKEN}`,
-      'content-type': 'application/json',
-      'square-version': SQUARE_VERSION,
-    },
-    body: JSON.stringify({
-      text_filter: searchTerm,
-      archived_state: 'ARCHIVED_STATE_NOT_ARCHIVED',
-      limit: 10,
-    }),
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-
+  try {
+    items = await listCatalogItems({
+      baseUrl,
+      accessToken: env.SQUARE_ACCESS_TOKEN,
+    });
+  } catch (error) {
     return json(
       {
         error: 'Square catalog request failed.',
         code: 'square_catalog_request_failed',
-        details: errorText,
+        details: error.message,
       },
-      { status: response.status }
+      { status: 502 }
     );
   }
 
-  const payload = await response.json();
-  const items = payload.items || [];
-  const match = selectBestMatch(items, normalizeText(searchTerm));
+  const match = findCatalogItemByExactName(items, searchTerm);
 
   if (!match) {
     return json(
       {
         error: `No Square catalog item matched "${searchTerm}".`,
         code: 'square_catalog_item_not_found',
+        requestedName: searchTerm,
+        availableNames: items
+          .filter((item) => item.type === 'ITEM' && !item.is_deleted && !item.item_data?.is_archived)
+          .map((item) => item.item_data?.name)
+          .filter(Boolean)
+          .slice(0, 50),
       },
       { status: 404 }
     );
