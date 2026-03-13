@@ -20,7 +20,7 @@ export const products = {
       imageAlt: 'sensual tea blend product',
     },
     square: {
-      searchTerm: 'sensual',
+      catalogName: 'sensual',
     },
   },
   sovereign: {
@@ -42,7 +42,7 @@ export const products = {
       imageAlt: 'sovereign tea blend product',
     },
     square: {
-      searchTerm: 'sovereign',
+      catalogName: 'sovereign',
     },
   },
   steady: {
@@ -64,9 +64,13 @@ export const products = {
       imageAlt: 'steady tea blend product',
     },
     square: {
-      searchTerm: 'steady',
+      catalogName: 'steady',
     },
   },
+};
+
+export const productSlugAliases = {
+  grounded: 'steady',
 };
 
 export const buildProductPageConfig = (slug) => {
