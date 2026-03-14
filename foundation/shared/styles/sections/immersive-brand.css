@@ -240,6 +240,15 @@
 .cart-drawer-item-body {
   display: grid;
   gap: 0.35rem;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.cart-drawer-item-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
 }
 
 .cart-drawer-item-title {
@@ -253,6 +262,8 @@
 
 .cart-drawer-item-price {
   font-size: 0.84rem;
+  text-align: right;
+  white-space: nowrap;
 }
 
 .cart-drawer-item-controls {
@@ -267,8 +278,8 @@
 .cart-drawer-checkout {
   font-family: var(--font-display);
   font-weight: 300;
-  font-size: var(--nav-font-size);
-  letter-spacing: var(--nav-letter-spacing);
+  font-size: 0.92rem;
+  letter-spacing: 0;
   text-transform: lowercase;
   text-decoration: underline;
   text-underline-offset: 0.16em;

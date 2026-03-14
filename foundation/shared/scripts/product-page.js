@@ -128,8 +128,7 @@ const renderCartDrawer = (refs) => {
 
     const price = document.createElement('p');
     price.className = 'cart-drawer-item-price';
-    const unitPrice =
-      item.priceFormatted || formatCurrency(item.priceAmount, item.currencyCode) || '';
+    const unitPrice = formatCurrency(item.priceAmount, item.currencyCode) || item.priceFormatted || '';
     const lineTotal = formatCurrency(
       Number(item.priceAmount || 0) * Number(item.quantity || 0),
       item.currencyCode
@@ -156,7 +155,11 @@ const renderCartDrawer = (refs) => {
     plus.addEventListener('click', () => updateCartItemQuantity(item.variationId, 1));
 
     controls.append(minus, quantity, plus);
-    body.append(title, price, controls);
+    const header = document.createElement('div');
+    header.className = 'cart-drawer-item-header';
+    header.append(title, price);
+
+    body.append(header, controls);
     row.append(image, body);
     drawerItems.append(row);
   });
@@ -249,9 +252,10 @@ const hydrateSquareData = async (config, refs) => {
     refs.detailLink.dataset.squarePriceAmount =
       typeof squareProduct.priceAmount === 'number' ? String(squareProduct.priceAmount) : '';
     refs.detailLink.dataset.squareCurrencyCode = squareProduct.currencyCode || '';
-    refs.detailLink.dataset.squarePriceFormatted = squareProduct.priceFormatted || '';
-    refs.price.textContent = squareProduct.priceFormatted || '';
-    refs.price.hidden = !squareProduct.priceFormatted;
+    const displayPrice = formatCurrency(squareProduct.priceAmount, squareProduct.currencyCode);
+    refs.detailLink.dataset.squarePriceFormatted = displayPrice || '';
+    refs.price.textContent = displayPrice || '';
+    refs.price.hidden = !displayPrice;
     refs.detailLink.dataset.squareAvailable = squareProduct.available ? 'true' : 'false';
 
     if (squareProduct.itemName) {
@@ -290,7 +294,7 @@ const hydrateSquareData = async (config, refs) => {
       locationId: squareProduct.locationId,
       priceAmount: squareProduct.priceAmount,
       currencyCode: squareProduct.currencyCode,
-      priceFormatted: squareProduct.priceFormatted,
+      priceFormatted: displayPrice,
       imageSrc: config.product.imageSrc,
     });
   } catch (error) {
@@ -419,9 +423,9 @@ export const createProductPage = (config) => {
     category,
     imageFrame,
     description,
-    price,
     ingredientsLabel,
     ingredients,
+    price,
     detailLink
   );
 

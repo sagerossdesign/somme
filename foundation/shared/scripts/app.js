@@ -195,8 +195,7 @@ const mountCartShell = (root, header, pageFrame, meta = {}) => {
 
       const priceLine = document.createElement('p');
       priceLine.className = 'cart-drawer-item-price';
-      const unitPrice =
-        item.priceFormatted || formatCurrency(item.priceAmount, item.currencyCode) || '';
+      const unitPrice = formatCurrency(item.priceAmount, item.currencyCode) || item.priceFormatted || '';
       const lineTotal = formatCurrency(
         Number(item.priceAmount || 0) * Number(item.quantity || 0),
         item.currencyCode
@@ -222,8 +221,12 @@ const mountCartShell = (root, header, pageFrame, meta = {}) => {
       plus.textContent = '+';
       plus.addEventListener('click', () => updateCartItemQuantity(item.variationId, 1));
 
+      const itemHeader = document.createElement('div');
+      itemHeader.className = 'cart-drawer-item-header';
+      itemHeader.append(title, priceLine);
+
       itemControls.append(minus, quantity, plus);
-      body.append(title, priceLine, itemControls);
+      body.append(itemHeader, itemControls);
       row.append(image, body);
       drawerItems.append(row);
     });

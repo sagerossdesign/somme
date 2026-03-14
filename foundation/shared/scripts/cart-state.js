@@ -30,13 +30,14 @@ export const getCartCount = (state = getCartState()) =>
   state.items.reduce((sum, item) => sum + (item.quantity || 0), 0);
 
 export const formatCurrency = (amount, currencyCode) => {
-  if (!amount || !currencyCode) {
+  if (amount === undefined || amount === null || amount === '') {
     return null;
   }
 
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: currencyCode,
+  return new Intl.NumberFormat(window.navigator.language || 'en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+    useGrouping: false,
   }).format(Number(amount) / 100);
 };
 
