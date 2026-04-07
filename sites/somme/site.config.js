@@ -23,7 +23,10 @@ export const siteConfig = {
     '--logo-filter': 'brightness(0) invert(1)',
   },
   sections: {
-    background: {},
+    background: {
+      imageSrc: '/web%20assets/Hero%20image%202.jpg',
+      imageAlt: 'sōmme homepage background',
+    },
     header: {
       navAriaLabel: 'Primary',
       links: [
