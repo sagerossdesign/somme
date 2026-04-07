@@ -29,6 +29,7 @@ export const siteConfig = {
     header: {
       navAriaLabel: 'Primary',
       links: [
+        { label: 'tea', href: '/products/sensual.html' },
         { label: 'about', href: '/about.html' },
       ],
     },
@@ -45,6 +46,7 @@ export const siteConfig = {
       brandLabel: 'sōmme',
       note: 'arrive to self through the senses',
       links: [
+        { label: 'tea', href: '/products/sensual.html' },
         { label: 'about', href: '/about.html' },
         { label: 'top', href: '#top' },
       ],

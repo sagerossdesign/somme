@@ -106,6 +106,7 @@ export const buildProductPageConfig = (slug) => {
       homeHref: '/',
       homeLabel: 'sōmme',
       links: [
+        { href: '/products/sensual.html', label: 'tea' },
         { href: '/about.html', label: 'about' },
         { href: '/#top', label: 'home' },
       ],
