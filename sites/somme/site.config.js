@@ -18,8 +18,7 @@ export const siteConfig = {
     '--hero-tagline-size': 'clamp(0.95rem, 1.8vw, 1.2rem)',
     '--nav-font-size': '0.76rem',
     '--nav-letter-spacing': '0.1em',
-    '--background-overlay':
-      'linear-gradient(180deg, rgba(19, 23, 17, 0.44) 0%, rgba(19, 23, 17, 0.3) 40%, rgba(19, 23, 17, 0.56) 100%), rgba(126, 135, 109, 0.12)',
+    '--background-overlay': 'transparent',
     '--logo-filter': 'brightness(0) invert(1)',
   },
   sections: {
