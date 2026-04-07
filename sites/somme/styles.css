@@ -24,3 +24,7 @@
   --button-bg: #f2ede3;
   --button-text: #141612;
 }
+
+html {
+  scroll-behavior: smooth;
+}

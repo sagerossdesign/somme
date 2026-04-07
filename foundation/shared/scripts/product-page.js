@@ -414,7 +414,7 @@ export const createProductPage = (config) => {
 
   const detailLink = document.createElement('a');
   detailLink.className = 'product-detail-link';
-  detailLink.href = navigation.backHref || '../index.html#tea';
+  detailLink.href = navigation.backHref || '../index.html#top';
   detailLink.textContent = navigation.backLabel || 'back to teas';
   detailLink.classList.add('is-loading');
   detailLink.setAttribute('aria-disabled', 'true');

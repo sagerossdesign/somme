@@ -106,8 +106,8 @@ export const buildProductPageConfig = (slug) => {
       homeHref: '/',
       homeLabel: 'sōmme',
       links: [
-        { href: '/#tea', label: 'tea' },
         { href: '/about.html', label: 'about' },
+        { href: '/#top', label: 'home' },
       ],
       previous: {
         href: `/products/${previousSlug}.html`,

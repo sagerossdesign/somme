@@ -27,7 +27,6 @@ export const siteConfig = {
     header: {
       navAriaLabel: 'Primary',
       links: [
-        { label: 'tea', href: '#tea' },
         { label: 'about', href: '/about.html' },
       ],
     },
@@ -38,65 +37,12 @@ export const siteConfig = {
         layout: 'centered',
         wordmark: 'sōmme',
       },
-      {
-        type: 'scrollSequence',
-        id: 'story',
-        lines: [
-          'arrive to self through the senses',
-        ],
-      },
-      {
-        type: 'teaFeature',
-        id: 'tea',
-        cards: [
-          {
-            botanical: 'rose',
-            imageSrc: '/sites/somme/assets/images/rose-abstract.png',
-            imageAlt: 'rose botanical card',
-            href: '/products/sensual.html',
-            overlay: {
-              title: 'sensual',
-              lines: [
-                'for the lover inside',
-              ],
-              ingredients: ['rose', 'hibiscus', 'damiana'],
-            },
-          },
-          {
-            botanical: 'hibiscus',
-            imageSrc: '/sites/somme/assets/images/soverign-abstract.png',
-            imageAlt: 'hibiscus botanical card',
-            href: '/products/sovereign.html',
-            overlay: {
-              title: 'sovereign',
-              lines: [
-                'for self-care days',
-              ],
-              ingredients: ['linden flower', 'spearmint', 'oat straw'],
-            },
-          },
-          {
-            botanical: 'damiana',
-            imageSrc: '/sites/somme/assets/images/grounded-abstract.png',
-            imageAlt: 'damiana botanical card',
-            href: '/products/steady.html',
-            overlay: {
-              title: 'steady',
-              lines: [
-                'for grounding the soul',
-              ],
-              ingredients: ['white pine', 'dandelion root', 'cacao'],
-            },
-          },
-        ],
-      },
     ],
     footer: {
       id: 'footer',
       brandLabel: 'sōmme',
       note: 'arrive to self through the senses',
       links: [
-        { label: 'tea', href: '#tea' },
         { label: 'about', href: '/about.html' },
         { label: 'top', href: '#top' },
       ],
@@ -109,22 +55,8 @@ export const siteConfig = {
     revealSections: {
       selector: '[data-reveal]',
     },
-    scrollSequence: {
-      selector: '[data-scroll-sequence]',
-    },
-    teaFeature: {
-      selector: '[data-tea-feature]',
-      duration: 9600,
-    },
-    sectionAdvance: {
-      heroSelector: '#top',
-      storySelector: '#story',
-      teaSelector: '#tea',
-      footerSelector: '#footer',
-      duration: 1150,
-      storyFadeDuration: 800,
-      storyToTeaDuration: 850,
-      gestureCooldown: 260,
-    },
+    scrollSequence: false,
+    teaFeature: false,
+    sectionAdvance: false,
   },
 };

@@ -162,8 +162,7 @@ main {
 }
 
 .hero-editorial-centered .hero-editorial-shell {
-  position: fixed;
-  inset: 0;
+  position: relative;
   width: 100%;
   margin: 0;
   padding: max(5.5rem, calc(var(--header-height) + 1.5rem)) var(--page-pad) 2rem;
@@ -171,7 +170,7 @@ main {
   justify-items: center;
   align-items: center;
   z-index: 1;
-  pointer-events: none;
+  min-height: 100svh;
 }
 
 .hero-editorial-centered .hero-editorial-intro {
