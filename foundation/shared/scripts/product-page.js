@@ -258,6 +258,10 @@ const hydrateSquareData = async (config, refs) => {
     refs.price.hidden = !displayPrice;
     refs.detailLink.dataset.squareAvailable = squareProduct.available ? 'true' : 'false';
 
+    if (squareProduct.imageUrl) {
+      refs.image.src = squareProduct.imageUrl;
+    }
+
     if (squareProduct.itemName) {
       refs.detailLink.setAttribute('aria-label', `add ${squareProduct.itemName} to cart`);
     }
@@ -295,7 +299,7 @@ const hydrateSquareData = async (config, refs) => {
       priceAmount: squareProduct.priceAmount,
       currencyCode: squareProduct.currencyCode,
       priceFormatted: displayPrice,
-      imageSrc: config.product.imageSrc,
+      imageSrc: squareProduct.imageUrl || config.product.imageSrc,
     });
   } catch (error) {
     refs.detailLink.dataset.squareError = 'unavailable';
@@ -550,6 +554,7 @@ export const createProductPage = (config) => {
 
   hydrateSquareData(config, {
     detailLink,
+    image,
     price,
   });
 };

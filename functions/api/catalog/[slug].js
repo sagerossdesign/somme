@@ -22,10 +22,19 @@ const findCatalogItemByExactName = (items, lookup) => {
   }) || null;
 };
 
-const normalizeCatalogItem = async (slug, item, locationId, env) => {
+const buildImageMap = (objects) =>
+  new Map(
+    objects
+      .filter((object) => object.type === 'IMAGE' && !object.is_deleted)
+      .map((image) => [image.id, image.image_data?.url || null])
+  );
+
+const normalizeCatalogItem = async (slug, item, imageMap, locationId, env) => {
   const variation = getVariationPrice(item);
   const priceMoney = variation?.item_variation_data?.price_money;
   const variationData = variation?.item_variation_data || {};
+  const imageIds = item.item_data?.image_ids || [];
+  const images = imageIds.map((imageId) => imageMap.get(imageId)).filter(Boolean);
   const locationOverride = getLocationOverride(variation, locationId);
   const inventoryCounts = await getVariationInventory({
     baseUrl: getSquareBaseUrl(env.SQUARE_ENVIRONMENT),
@@ -56,6 +65,9 @@ const normalizeCatalogItem = async (slug, item, locationId, env) => {
     itemId: item.id,
     itemName: item.item_data?.name || slug,
     itemDescription: item.item_data?.description || '',
+    imageIds,
+    images,
+    imageUrl: images[0] || null,
     variationId: variation?.id || null,
     variationName: variation?.item_variation_data?.name || null,
     priceAmount: priceMoney?.amount ?? null,
@@ -96,7 +108,7 @@ export const onRequestGet = async ({ env, params }) => {
     objects = await listCatalogObjects({
       baseUrl,
       accessToken: env.SQUARE_ACCESS_TOKEN,
-      types: ['ITEM'],
+      types: ['ITEM', 'IMAGE'],
     });
   } catch (error) {
     return json(
@@ -110,6 +122,7 @@ export const onRequestGet = async ({ env, params }) => {
   }
 
   const items = objects.filter((object) => object.type === 'ITEM');
+  const imageMap = buildImageMap(objects);
   const match = findCatalogItemByExactName(items, catalogName);
 
   if (!match) {
@@ -132,7 +145,7 @@ export const onRequestGet = async ({ env, params }) => {
 
   return json(
     {
-      product: await normalizeCatalogItem(slug, match, env.SQUARE_LOCATION_ID, env),
+      product: await normalizeCatalogItem(slug, match, imageMap, env.SQUARE_LOCATION_ID, env),
     },
     {
       headers: {
