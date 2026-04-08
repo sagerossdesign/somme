@@ -23,7 +23,7 @@ export const siteConfig = {
   },
   sections: {
     background: {
-      imageSrc: '/web%20assets/Hero%20image%202.jpg',
+      imageSrc: '/web%20assets/Add%20Noise.png',
       imageAlt: 'sōmme homepage background',
     },
     header: {
