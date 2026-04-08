@@ -16,7 +16,7 @@ export const products = {
         'a soft floral blend for slow evenings and open-hearted ritual',
       ingredientsLabel: 'botanicals',
       ingredients: ['rose', 'hibiscus', 'damiana'],
-      imageSrc: '/sites/somme/assets/images/products/sensual-tsp.png',
+      imageSrc: '/web%20assets/botanicals/sensual.png',
       imageAlt: 'sensual tea blend product',
     },
     square: {
@@ -38,7 +38,7 @@ export const products = {
         'a clarifying blend for quiet mornings and returning to yourself',
       ingredientsLabel: 'botanicals',
       ingredients: ['linden flower', 'spearmint', 'oat straw'],
-      imageSrc: '/sites/somme/assets/images/products/sovereign-tsp.png',
+      imageSrc: '/web%20assets/botanicals/sovereign.png',
       imageAlt: 'sovereign tea blend product',
     },
     square: {
@@ -60,7 +60,7 @@ export const products = {
         'a rooted cacao blend for settling the body and grounding the soul',
       ingredientsLabel: 'botanicals',
       ingredients: ['white pine', 'dandelion root', 'cacao'],
-      imageSrc: '/sites/somme/assets/images/products/steady-tsp.png',
+      imageSrc: '/web%20assets/botanicals/steady.png',
       imageAlt: 'steady tea blend product',
     },
     square: {
