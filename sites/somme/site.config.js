@@ -22,10 +22,7 @@ export const siteConfig = {
     '--logo-filter': 'brightness(0) invert(1)',
   },
   sections: {
-    background: {
-      imageSrc: '/web%20assets/Add%20Noise%201080.png',
-      imageAlt: 'sōmme homepage background',
-    },
+    background: {},
     header: {
       navAriaLabel: 'Primary',
       links: [
