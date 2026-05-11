@@ -66,6 +66,18 @@ const loadCheckoutConfig = async () => {
   const payload = await response.json().catch(() => null);
 
   if (!response.ok) {
+    if (payload?.code === 'missing_square_checkout_config' && payload?.missing) {
+      const missing = Object.entries(payload.missing)
+        .filter(([, isMissing]) => Boolean(isMissing))
+        .map(([key]) => key)
+        .join(', ');
+      throw new Error(
+        missing
+          ? `Square checkout config is incomplete: missing ${missing}.`
+          : payload.error || 'checkout config unavailable'
+      );
+    }
+
     throw new Error(payload?.error || 'checkout config unavailable');
   }
 
