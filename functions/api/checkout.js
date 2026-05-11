@@ -1,18 +1,39 @@
-const SQUARE_VERSION = '2026-01-22';
+import { SQUARE_VERSION, getSquareBaseUrl, json } from './_square.js';
 
-const json = (body, init = {}) =>
-  new Response(JSON.stringify(body), {
+const postSquareJson = async (url, accessToken, body) => {
+  const response = await fetch(url, {
+    method: 'POST',
     headers: {
-      'content-type': 'application/json; charset=utf-8',
-      ...init.headers,
+      authorization: `Bearer ${accessToken}`,
+      'content-type': 'application/json',
+      'square-version': SQUARE_VERSION,
     },
-    status: init.status || 200,
+    body: JSON.stringify(body),
   });
 
-const getSquareBaseUrl = (environment = 'sandbox') =>
-  environment === 'production'
-    ? 'https://connect.squareup.com'
-    : 'https://connect.squareupsandbox.com';
+  const text = await response.text();
+  let payload = null;
+
+  try {
+    payload = text ? JSON.parse(text) : null;
+  } catch {
+    payload = text || null;
+  }
+
+  return {
+    ok: response.ok,
+    status: response.status,
+    payload,
+  };
+};
+
+const normalizeLineItems = (items = []) =>
+  items
+    .map((item) => ({
+      quantity: String(Math.max(1, Number(item.quantity || 1))),
+      catalog_object_id: item.variationId || '',
+    }))
+    .filter((item) => item.catalog_object_id);
 
 export const onRequestPost = async ({ env, request }) => {
   if (!env.SQUARE_ACCESS_TOKEN) {
@@ -29,7 +50,7 @@ export const onRequestPost = async ({ env, request }) => {
 
   try {
     payload = await request.json();
-  } catch (error) {
+  } catch {
     return json(
       {
         error: 'Invalid checkout payload.',
@@ -39,7 +60,20 @@ export const onRequestPost = async ({ env, request }) => {
     );
   }
 
+  const sourceId = payload?.sourceId || '';
+  const verificationToken = payload?.verificationToken || undefined;
+  const buyerEmail = payload?.buyerEmail || undefined;
   const items = Array.isArray(payload?.items) ? payload.items : [];
+
+  if (!sourceId) {
+    return json(
+      {
+        error: 'Missing Square payment source.',
+        code: 'missing_square_source_id',
+      },
+      { status: 400 }
+    );
+  }
 
   if (!items.length) {
     return json(
@@ -63,12 +97,9 @@ export const onRequestPost = async ({ env, request }) => {
     );
   }
 
-  const lineItems = items.map((item) => ({
-    quantity: String(item.quantity || 1),
-    catalog_object_id: item.variationId,
-  }));
+  const lineItems = normalizeLineItems(items);
 
-  if (lineItems.some((item) => !item.catalog_object_id)) {
+  if (!lineItems.length || lineItems.length !== items.length) {
     return json(
       {
         error: 'One or more cart items are missing Square variation ids.',
@@ -78,48 +109,66 @@ export const onRequestPost = async ({ env, request }) => {
     );
   }
 
-  const checkoutResponse = await fetch(
-    `${getSquareBaseUrl(env.SQUARE_ENVIRONMENT)}/v2/online-checkout/payment-links`,
-    {
-      method: 'POST',
-      headers: {
-        authorization: `Bearer ${env.SQUARE_ACCESS_TOKEN}`,
-        'content-type': 'application/json',
-        'square-version': SQUARE_VERSION,
-      },
-      body: JSON.stringify({
-        idempotency_key: crypto.randomUUID(),
-        quick_pay: undefined,
-        order: {
-          location_id: locationId,
-          line_items: lineItems,
-        },
-        checkout_options: {
-          redirect_url: env.SQUARE_CHECKOUT_REDIRECT_URL || new URL(request.url).origin,
-        },
-      }),
-    }
-  );
+  const baseUrl = getSquareBaseUrl(env.SQUARE_ENVIRONMENT);
+  const orderResult = await postSquareJson(`${baseUrl}/v2/orders`, env.SQUARE_ACCESS_TOKEN, {
+    idempotency_key: crypto.randomUUID(),
+    order: {
+      location_id: locationId,
+      line_items: lineItems,
+    },
+  });
 
-  if (!checkoutResponse.ok) {
-    const details = await checkoutResponse.text();
+  if (!orderResult.ok) {
     return json(
       {
-        error: 'Square checkout request failed.',
-        code: 'square_checkout_request_failed',
-        details,
+        error: 'Square order creation failed.',
+        code: 'square_order_creation_failed',
+        details: orderResult.payload,
       },
-      { status: checkoutResponse.status }
+      { status: orderResult.status }
     );
   }
 
-  const checkoutPayload = await checkoutResponse.json();
+  const order = orderResult.payload?.order;
+  const amountMoney = order?.net_amount_due_money || order?.total_money || null;
+
+  if (!order?.id || typeof amountMoney?.amount !== 'number' || !amountMoney?.currency) {
+    return json(
+      {
+        error: 'Square order total was unavailable.',
+        code: 'square_order_total_unavailable',
+        details: orderResult.payload,
+      },
+      { status: 502 }
+    );
+  }
+
+  const paymentResult = await postSquareJson(`${baseUrl}/v2/payments`, env.SQUARE_ACCESS_TOKEN, {
+    idempotency_key: crypto.randomUUID(),
+    source_id: sourceId,
+    location_id: locationId,
+    order_id: order.id,
+    amount_money: amountMoney,
+    autocomplete: true,
+    verification_token: verificationToken,
+    buyer_email_address: buyerEmail,
+  });
+
+  if (!paymentResult.ok) {
+    return json(
+      {
+        error: 'Square payment request failed.',
+        code: 'square_payment_request_failed',
+        details: paymentResult.payload,
+      },
+      { status: paymentResult.status }
+    );
+  }
 
   return json({
-    checkoutUrl:
-      checkoutPayload.payment_link?.url ||
-      checkoutPayload.related_resources?.payment_link?.url ||
-      null,
-    orderId: checkoutPayload.payment_link?.order_id || null,
+    success: true,
+    orderId: order.id,
+    paymentId: paymentResult.payload?.payment?.id || null,
+    receiptUrl: paymentResult.payload?.payment?.receipt_url || null,
   });
 };

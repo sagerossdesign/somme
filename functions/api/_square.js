@@ -1,4 +1,4 @@
-const SQUARE_VERSION = '2026-01-22';
+export const SQUARE_VERSION = '2026-01-22';
 
 export const json = (body, init = {}) =>
   new Response(JSON.stringify(body), {

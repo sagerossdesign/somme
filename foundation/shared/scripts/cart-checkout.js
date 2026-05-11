@@ -10,28 +10,11 @@ export const startSquareCheckout = async (button) => {
   button.textContent = 'processing';
 
   try {
-    const response = await fetch('/api/checkout', {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        accept: 'application/json',
-      },
-      body: JSON.stringify({
-        items: getCartState().items,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error('checkout request failed');
+    if (!getCartState().items.length) {
+      throw new Error('cart is empty');
     }
 
-    const payload = await response.json();
-
-    if (!payload.checkoutUrl) {
-      throw new Error('checkout url missing');
-    }
-
-    window.location.href = payload.checkoutUrl;
+    window.location.href = '/checkout.html';
   } catch (error) {
     button.textContent = 'checkout unavailable';
     window.setTimeout(() => {
