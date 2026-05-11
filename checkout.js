@@ -46,6 +46,35 @@ const buildCartItems = (items = []) => {
   return list;
 };
 
+const buildRitualNotes = () => {
+  const list = createElement('div', 'checkout-notes');
+  const notes = [
+    {
+      title: 'secure payment',
+      body: 'card details stay inside Square’s encrypted payment fields.',
+    },
+    {
+      title: 'small-batch blends',
+      body: 'your order is created directly from the live Square catalog and inventory.',
+    },
+    {
+      title: 'gentle finish',
+      body: 'you’ll receive a receipt immediately after payment is confirmed.',
+    },
+  ];
+
+  notes.forEach(({ title, body }) => {
+    const item = createElement('article', 'checkout-note');
+    item.append(
+      createElement('p', 'checkout-note-title', title),
+      createElement('p', 'checkout-note-body', body)
+    );
+    list.append(item);
+  });
+
+  return list;
+};
+
 const setStatus = (node, message, tone = '') => {
   node.textContent = message || '';
 
@@ -93,7 +122,7 @@ const mountCheckout = async () => {
   header.append(homeLink, backLink);
 
   const shell = createElement('div', 'checkout-shell');
-  const paymentPanel = createElement('section', 'checkout-panel');
+  const paymentPanel = createElement('section', 'checkout-panel checkout-payment-panel');
   const summaryPanel = createElement('aside', 'checkout-panel checkout-summary');
 
   const kicker = createElement('p', 'checkout-kicker', 'checkout');
@@ -101,14 +130,15 @@ const mountCheckout = async () => {
   const body = createElement(
     'p',
     'checkout-muted',
-    'your card details stay inside Square’s secure payment fields while the rest of the experience stays on-site.'
+    'a calm, on-site finish for your order. your payment details stay inside Square’s secure fields while the experience stays entirely within sōmme.'
   );
+  const accent = createElement('div', 'checkout-accent');
   const copy = createElement('div', 'checkout-copy');
   copy.append(kicker, title, body);
 
   const status = createElement('p', 'checkout-status');
 
-  paymentPanel.append(copy, status);
+  paymentPanel.append(accent, copy, status);
 
   if (!items.length) {
     const empty = createElement('div', 'checkout-empty');
@@ -157,19 +187,21 @@ const mountCheckout = async () => {
 
   form.append(emailField, cardField, submit);
   paymentPanel.append(form);
+  paymentPanel.append(buildRitualNotes());
 
   const summaryTitle = createElement('h2', 'checkout-section-title', 'order summary');
   const summaryNote = createElement(
     'p',
-    'checkout-muted',
+    'checkout-summary-note',
     'taxes and any Square-side adjustments will finalize during payment.'
   );
+  const summaryEyebrow = createElement('p', 'checkout-kicker', 'today’s selection');
   const totalRow = createElement('div', 'checkout-summary-total');
   totalRow.append(
     createElement('p', 'checkout-total-label', 'subtotal'),
     createElement('p', 'checkout-total-value', formatCurrency(subtotal, currencyCode) || '')
   );
-  summaryPanel.append(summaryTitle, summaryNote, buildCartItems(items), totalRow);
+  summaryPanel.append(summaryEyebrow, summaryTitle, summaryNote, buildCartItems(items), totalRow);
 
   shell.append(paymentPanel, summaryPanel);
   page.append(header, shell);
@@ -230,6 +262,16 @@ const mountCheckout = async () => {
           'success'
         );
         form.remove();
+        const successBlock = createElement('div', 'checkout-success');
+        successBlock.append(
+          createElement('p', 'checkout-section-title', 'thank you'),
+          createElement(
+            'p',
+            'checkout-muted',
+            'your order has been placed and a receipt is ready below.'
+          )
+        );
+        paymentPanel.append(successBlock);
 
         if (payload.receiptUrl) {
           const receiptLink = createElement('a', 'checkout-link', 'view receipt');
