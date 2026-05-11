@@ -35,6 +35,37 @@ const normalizeLineItems = (items = []) =>
     }))
     .filter((item) => item.catalog_object_id);
 
+const buildFulfillmentRecipient = (customer = {}, shippingAddress = {}) => {
+  const firstName = customer.firstName?.trim() || '';
+  const lastName = customer.lastName?.trim() || '';
+  const displayName = `${firstName} ${lastName}`.trim();
+  const phoneNumber = customer.phone?.trim() || '';
+  const emailAddress = customer.email?.trim() || '';
+  const addressLine1 = shippingAddress.addressLine1?.trim() || '';
+  const city = shippingAddress.city?.trim() || '';
+  const state = shippingAddress.state?.trim() || '';
+  const postalCode = shippingAddress.postalCode?.trim() || '';
+  const country = shippingAddress.country?.trim() || '';
+
+  if (!displayName || !phoneNumber || !addressLine1 || !city || !state || !postalCode || !country) {
+    return null;
+  }
+
+  return {
+    display_name: displayName,
+    email_address: emailAddress || undefined,
+    phone_number: phoneNumber,
+    address: {
+      address_line_1: addressLine1,
+      address_line_2: shippingAddress.addressLine2?.trim() || undefined,
+      locality: city,
+      administrative_district_level_1: state,
+      postal_code: postalCode,
+      country,
+    },
+  };
+};
+
 export const onRequestPost = async ({ env, request }) => {
   if (!env.SQUARE_ACCESS_TOKEN) {
     return json(
@@ -63,6 +94,8 @@ export const onRequestPost = async ({ env, request }) => {
   const sourceId = payload?.sourceId || '';
   const verificationToken = payload?.verificationToken || undefined;
   const buyerEmail = payload?.buyerEmail || undefined;
+  const customer = payload?.customer || {};
+  const shippingAddress = payload?.shippingAddress || {};
   const items = Array.isArray(payload?.items) ? payload.items : [];
 
   if (!sourceId) {
@@ -98,6 +131,7 @@ export const onRequestPost = async ({ env, request }) => {
   }
 
   const lineItems = normalizeLineItems(items);
+  const recipient = buildFulfillmentRecipient(customer, shippingAddress);
 
   if (!lineItems.length || lineItems.length !== items.length) {
     return json(
@@ -109,12 +143,30 @@ export const onRequestPost = async ({ env, request }) => {
     );
   }
 
+  if (!recipient) {
+    return json(
+      {
+        error: 'Shipping details are incomplete.',
+        code: 'missing_shipping_details',
+      },
+      { status: 400 }
+    );
+  }
+
   const baseUrl = getSquareBaseUrl(env.SQUARE_ENVIRONMENT);
   const orderResult = await postSquareJson(`${baseUrl}/v2/orders`, env.SQUARE_ACCESS_TOKEN, {
     idempotency_key: crypto.randomUUID(),
     order: {
       location_id: locationId,
       line_items: lineItems,
+      fulfillments: [
+        {
+          type: 'SHIPMENT',
+          shipment_details: {
+            recipient,
+          },
+        },
+      ],
     },
   });
 

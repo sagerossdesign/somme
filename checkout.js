@@ -72,6 +72,86 @@ const loadCheckoutConfig = async () => {
   return payload;
 };
 
+const createField = ({
+  label,
+  name,
+  type = 'text',
+  autocomplete,
+  required = true,
+  placeholder = '',
+}) => {
+  const field = createElement('label', 'checkout-field');
+  const labelNode = createElement('span', 'checkout-label', label);
+  const input = document.createElement('input');
+  input.className = 'checkout-input';
+  input.type = type;
+  input.name = name;
+  input.placeholder = placeholder;
+  input.required = required;
+
+  if (autocomplete) {
+    input.autocomplete = autocomplete;
+  }
+
+  field.append(labelNode, input);
+  return { field, input };
+};
+
+const createSelectField = ({ label, name, options = [], required = true }) => {
+  const field = createElement('label', 'checkout-field');
+  const labelNode = createElement('span', 'checkout-label', label);
+  const select = document.createElement('select');
+  select.className = 'checkout-input checkout-select';
+  select.name = name;
+  select.required = required;
+
+  options.forEach(({ value, label: optionLabel }) => {
+    const option = document.createElement('option');
+    option.value = value;
+    option.textContent = optionLabel;
+    select.append(option);
+  });
+
+  field.append(labelNode, select);
+  return { field, select };
+};
+
+const buildBillingContact = (values) => ({
+  givenName: values.firstName,
+  familyName: values.lastName,
+  email: values.email,
+  phone: values.phone,
+  addressLines: [values.addressLine1, values.addressLine2].filter(Boolean),
+  city: values.city,
+  state: values.state,
+  postalCode: values.postalCode,
+  countryCode: values.country,
+});
+
+const collectFormValues = (refs) => ({
+  firstName: refs.firstName.value.trim(),
+  lastName: refs.lastName.value.trim(),
+  email: refs.email.value.trim(),
+  phone: refs.phone.value.trim(),
+  addressLine1: refs.addressLine1.value.trim(),
+  addressLine2: refs.addressLine2.value.trim(),
+  city: refs.city.value.trim(),
+  state: refs.state.value.trim(),
+  postalCode: refs.postalCode.value.trim(),
+  country: refs.country.value,
+});
+
+const formatPaymentAmount = (amount, currencyCode) => {
+  if (typeof amount !== 'number' || !currencyCode) {
+    return null;
+  }
+
+  const zeroDecimalCurrencies = new Set(['JPY']);
+  return zeroDecimalCurrencies.has(currencyCode)
+    ? String(amount)
+    : (amount / 100).toFixed(2);
+};
+
 const mountCheckout = async () => {
   const root = document.querySelector('#app');
 
@@ -101,13 +181,12 @@ const mountCheckout = async () => {
   const body = createElement(
     'p',
     'checkout-muted',
-    'review your order and complete payment securely with Square.'
+    'enter your details, shipping address, and payment information to complete your order.'
   );
   const copy = createElement('div', 'checkout-copy');
   copy.append(kicker, title, body);
 
   const status = createElement('p', 'checkout-status');
-
   paymentPanel.append(copy, status);
 
   if (!items.length) {
@@ -131,21 +210,100 @@ const mountCheckout = async () => {
   const form = createElement('form', 'checkout-form');
   form.noValidate = true;
 
-  const emailField = createElement('label', 'checkout-field');
-  const emailLabel = createElement('span', 'checkout-label', 'email');
-  const emailInput = document.createElement('input');
-  emailInput.className = 'checkout-input';
-  emailInput.type = 'email';
-  emailInput.name = 'email';
-  emailInput.autocomplete = 'email';
-  emailInput.required = true;
-  emailField.append(emailLabel, emailInput);
+  const customerSection = createElement('section', 'checkout-section');
+  customerSection.append(
+    createElement('h2', 'checkout-section-title', 'personal information')
+  );
+  const customerGrid = createElement('div', 'checkout-grid checkout-grid-two');
+  const { field: firstNameField, input: firstNameInput } = createField({
+    label: 'first name',
+    name: 'firstName',
+    autocomplete: 'given-name',
+  });
+  const { field: lastNameField, input: lastNameInput } = createField({
+    label: 'last name',
+    name: 'lastName',
+    autocomplete: 'family-name',
+  });
+  const { field: emailField, input: emailInput } = createField({
+    label: 'email',
+    name: 'email',
+    type: 'email',
+    autocomplete: 'email',
+  });
+  const { field: phoneField, input: phoneInput } = createField({
+    label: 'phone',
+    name: 'phone',
+    type: 'tel',
+    autocomplete: 'tel',
+  });
+  customerGrid.append(firstNameField, lastNameField, emailField, phoneField);
+  customerSection.append(customerGrid);
 
+  const shippingSection = createElement('section', 'checkout-section');
+  shippingSection.append(
+    createElement('h2', 'checkout-section-title', 'shipping address')
+  );
+  const shippingGrid = createElement('div', 'checkout-grid checkout-grid-two');
+  const { field: addressLine1Field, input: addressLine1Input } = createField({
+    label: 'address line 1',
+    name: 'addressLine1',
+    autocomplete: 'shipping address-line1',
+  });
+  const { field: addressLine2Field, input: addressLine2Input } = createField({
+    label: 'address line 2',
+    name: 'addressLine2',
+    autocomplete: 'shipping address-line2',
+    required: false,
+  });
+  const { field: cityField, input: cityInput } = createField({
+    label: 'city',
+    name: 'city',
+    autocomplete: 'shipping address-level2',
+  });
+  const { field: stateField, input: stateInput } = createField({
+    label: 'province / state',
+    name: 'state',
+    autocomplete: 'shipping address-level1',
+  });
+  const { field: postalCodeField, input: postalCodeInput } = createField({
+    label: 'postal code',
+    name: 'postalCode',
+    autocomplete: 'shipping postal-code',
+  });
+  const { field: countryField, select: countrySelect } = createSelectField({
+    label: 'country',
+    name: 'country',
+    options: [
+      { value: 'CA', label: 'Canada' },
+      { value: 'US', label: 'United States' },
+    ],
+  });
+  shippingGrid.append(
+    addressLine1Field,
+    addressLine2Field,
+    cityField,
+    stateField,
+    postalCodeField,
+    countryField
+  );
+  shippingSection.append(shippingGrid);
+
+  const paymentSection = createElement('section', 'checkout-section');
+  paymentSection.append(
+    createElement('h2', 'checkout-section-title', 'payment')
+  );
+  const paymentNote = createElement(
+    'p',
+    'checkout-muted',
+    'card details are collected in Square’s secure payment form below.'
+  );
   const cardField = createElement('label', 'checkout-field');
-  const cardLabel = createElement('span', 'checkout-label', 'card');
+  const cardLabel = createElement('span', 'checkout-label', 'card details');
   const cardContainer = createElement('div');
   cardContainer.id = 'card-container';
   cardField.append(cardLabel, cardContainer);
+  paymentSection.append(paymentNote, cardField);
 
   const submit = createElement(
     'button',
@@ -155,14 +313,14 @@ const mountCheckout = async () => {
   submit.type = 'submit';
   submit.disabled = true;
 
-  form.append(emailField, cardField, submit);
+  form.append(customerSection, shippingSection, paymentSection, submit);
   paymentPanel.append(form);
 
   const summaryTitle = createElement('h2', 'checkout-section-title', 'order summary');
   const summaryNote = createElement(
     'p',
     'checkout-summary-note',
-    'taxes and any Square-side adjustments will be calculated during payment.'
+    'shipping and any Square-side adjustments will be finalized during payment.'
   );
   const totalRow = createElement('div', 'checkout-summary-total');
   totalRow.append(
@@ -174,6 +332,19 @@ const mountCheckout = async () => {
   shell.append(paymentPanel, summaryPanel);
   page.append(header, shell);
   root.replaceChildren(page);
+
+  const fieldRefs = {
+    firstName: firstNameInput,
+    lastName: lastNameInput,
+    email: emailInput,
+    phone: phoneInput,
+    addressLine1: addressLine1Input,
+    addressLine2: addressLine2Input,
+    city: cityInput,
+    state: stateInput,
+    postalCode: postalCodeInput,
+    country: countrySelect,
+  };
 
   try {
     if (!window.Square) {
@@ -189,7 +360,7 @@ const mountCheckout = async () => {
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
 
-      if (!emailInput.reportValidity()) {
+      if (!form.reportValidity()) {
         return;
       }
 
@@ -198,7 +369,17 @@ const mountCheckout = async () => {
       setStatus(status, '');
 
       try {
-        const tokenResult = await card.tokenize();
+        const values = collectFormValues(fieldRefs);
+        const amount = formatPaymentAmount(subtotal, currencyCode);
+        const billingContact = buildBillingContact(values);
+        const tokenResult = await card.tokenize({
+          intent: 'CHARGE',
+          amount,
+          currencyCode,
+          customerInitiated: true,
+          sellerKeyedIn: false,
+          billingContact,
+        });
 
         if (tokenResult.status !== 'OK') {
           throw new Error('Card details could not be tokenized.');
@@ -212,7 +393,21 @@ const mountCheckout = async () => {
           },
           body: JSON.stringify({
             sourceId: tokenResult.token,
-            buyerEmail: emailInput.value.trim(),
+            buyerEmail: values.email,
+            customer: {
+              firstName: values.firstName,
+              lastName: values.lastName,
+              email: values.email,
+              phone: values.phone,
+            },
+            shippingAddress: {
+              addressLine1: values.addressLine1,
+              addressLine2: values.addressLine2,
+              city: values.city,
+              state: values.state,
+              postalCode: values.postalCode,
+              country: values.country,
+            },
             items,
           }),
         });
@@ -224,11 +419,7 @@ const mountCheckout = async () => {
         }
 
         setCartState({ items: [] });
-        setStatus(
-          status,
-          'payment received. your order is complete.',
-          'success'
-        );
+        setStatus(status, 'payment received. your order is complete.', 'success');
         form.remove();
         const successBlock = createElement('div', 'checkout-success');
         successBlock.append(
