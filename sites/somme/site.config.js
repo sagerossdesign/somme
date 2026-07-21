@@ -22,7 +22,11 @@ export const siteConfig = {
     '--logo-filter': 'brightness(0) invert(1)',
   },
   sections: {
-    background: {},
+    background: {
+      imageSrc: '/sites/somme/assets/images/paper-screen-room.png',
+      imageAlt: '',
+      eager: true,
+    },
     header: {
       navAriaLabel: 'Primary',
       links: [
