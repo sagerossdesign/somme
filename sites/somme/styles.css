@@ -28,3 +28,46 @@
 html {
   scroll-behavior: smooth;
 }
+
+body.home-room-journey {
+  --room-progress: 0;
+}
+
+.home-room-journey .background-image {
+  transform-origin: 82% 62%;
+  transform:
+    translate3d(calc(var(--room-progress) * -33vw), calc(var(--room-progress) * -3vh), 0)
+    scale(calc(1.03 + var(--room-progress) * 1.55));
+  will-change: transform;
+}
+
+.home-room-journey .hero-editorial-centered {
+  min-height: 420svh;
+  align-items: start;
+}
+
+.home-room-journey .hero-editorial-centered .hero-editorial-shell {
+  position: sticky;
+  top: 0;
+}
+
+.home-room-journey .hero-editorial-intro {
+  opacity: calc(1 - min(1, var(--room-progress) * 3));
+  transform: translate3d(0, calc(var(--room-progress) * -2rem), 0);
+  will-change: opacity, transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-room-journey .background-image,
+  .home-room-journey .hero-editorial-intro {
+    transform: none;
+  }
+
+  .home-room-journey .hero-editorial-intro {
+    opacity: 1;
+  }
+
+  .home-room-journey .hero-editorial-centered {
+    min-height: 100svh;
+  }
+}
